@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Win with Hackii - Detective AI Dashboard</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        .timer-box {
+            font-size: 18px;
+            color: var(--gold);
+            margin: 15px 0;
+            text-shadow: 0 0 12px rgba(255, 170, 0, 0.45);
+            font-weight: 700;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px dashed rgba(255, 170, 0, 0.35);
+            letter-spacing: 0.5px;
+        }
+        .blinking-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--neon-green);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            animation: blink 1.2s infinite;
+            box-shadow: 0 0 12px var(--neon-green);
+        }
+        @keyframes blink {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+        .numbers-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .num-block {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 102, 204, 0.4));
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            color: #fff;
+            padding: 10px 0;
+            width: 90px;
+            border-radius: 14px;
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.3);
+            text-align: center;
+        }
+        .num-main-val {
+            font-size: 34px;
+            font-weight: 900;
+            font-family: monospace;
+            display: block;
+            text-shadow: 0 0 10px #fff;
+        }
+        .num-sub-lbl {
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+        .color-badge {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="hack-title" style="color: var(--gold); text-shadow: 0 0 25px rgba(255,170,0,0.6);">💎 WIN WITH HACKII 💎</h1>
+        <h2 class="sub-title" style="color: var(--neon-cyan);">ADVANCED DETECTIVE TELEMETRY</h2>
+        
+        <div style="background: rgba(0,0,0,0.4); padding: 14px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(255,255,255,0.04); text-align: left; display: flex; flex-direction: column; gap: 5px;">
+            <p style="font-size: 12px; margin: 0; color: #b3b3b3;">
+                <span class="blinking-dot"></span> DETECTIVE STREAM: <span style="color:var(--neon-green); font-weight:700;">ACTIVE ANALYSIS</span>
+            </p>
+            <p style="font-size: 12px; margin: 0; color: #b3b3b3;">Terminal Node: <span id="myUidDisplay" style="color:var(--neon-cyan); font-weight:700; font-family: monospace;">-</span></p>
+        </div>
+
+        <div class="timer-box" id="timerDisplay">⏳ NEXT HORIZON REFRESH: 00:00s</div>
+
+        <div class="prediction-box">
+            <h3 style="margin: 0 0 18px 0; font-size: 11px; color:var(--neon-pink); letter-spacing: 3px; font-weight: 800;">⚡ HIGH-LEVEL CORE PREDICTOR ⚡</h3>
+            <h2 id="periodId" style="font-size: 25px; margin: 5px 0; color: #fff; font-family: monospace;">Period: <span style="color: var(--neon-cyan); letter-spacing: 1px;">----</span></h2>
+            
+            <hr style="border:0; border-top: 1px solid rgba(255,255,255,0.08); margin: 22px 0;">
+
+            <div style="font-size: 14px; margin-bottom: 6px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">Target Color Node</div>
+            <div id="colorResult" class="color-badge" style="margin-bottom: 25px;">-</div>
+
+            <div style="font-size: 14px; margin-bottom: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">Optimal Target Outputs</div>
+            
+            <div class="numbers-container">
+                <div class="num-block">
+                    <span id="predictNumberSmall" class="num-main-val">-</span>
+                    <span class="num-sub-lbl">Pattern A</span>
+                </div>
+                <div class="num-block">
+                    <span id="predictNumberBig" class="num-main-val">-</span>
+                    <span class="num-sub-lbl">Pattern B</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="font-size:11px; color:#737373; margin-top:22px; line-height: 1.6; background: rgba(0,0,0,0.5); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+            ⚠️ <strong>Secure Mainframe Rule:</strong> Target patterns trace mathematical matrix logic boundaries. Dynamic synchronization runs constantly across local clusters.
+        </div>
+    </div>
+
+    <script>
+        const uid = localStorage.getItem('user_uid');
+        if(!uid) { window.location.href = 'index.html'; }
+        document.getElementById('myUidDisplay').innerText = uid || "-";
+
+        async function verifyNodeLoop() {
+            try {
+                const res = await fetch('/api/user/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid })
+                });
+                const data = await res.json();
+                if(data.status !== 'approved') {
+                    alert('Terminal link expired or revoked by cluster root admin!');
+                    localStorage.removeItem('user_uid');
+                    window.location.href = 'index.html';
+                }
+            } catch (e) {}
+        }
+        setInterval(verifyNodeLoop, 5000);
+
+        function runLocalCountdown() {
+            setInterval(() => {
+                const now = new Date();
+                const seconds = now.getSeconds();
+                const remainingSeconds = 60 - seconds;
+                let displaySec = remainingSeconds < 10 ? "0" + remainingSeconds : remainingSeconds;
+                document.getElementById('timerDisplay').innerText = `⏳ NEXT HORIZON REFRESH: 00:${displaySec}s`;
+            }, 1000);
+        }
+        runLocalCountdown();
+
+        const socket = io();
+        socket.on('predictionUpdate', (data) => {
+            if(data && data.period) {
+                document.getElementById('periodId').innerHTML = `Period: <span style="color:var(--neon-cyan); font-weight:800; font-size:26px;">${data.period}</span>`;
+                
+                document.getElementById('predictNumberSmall').innerText = data.numberSmall !== undefined ? data.numberSmall : "-";
+                document.getElementById('predictNumberBig').innerText = data.numberBig !== undefined ? data.numberBig : "-";
+                
+                let clrElement = document.getElementById('colorResult');
+                if(data.color === "GREEN") {
+                    clrElement.style.color = "var(--neon-green)";
+                    clrElement.innerText = "GREEN";
+                } else if(data.color === "RED") {
+                    clrElement.style.color = "var(--neon-red)";
+                    clrElement.innerText = "RED";
+                } else {
+                    clrElement.style.color = "#ffffff";
+                    clrElement.innerText = data.color;
+                }
+            }
+        });
+
+        socket.on('uidRevoked', (data) => {
+            if(data.uid === uid) {
+                localStorage.removeItem('user_uid');
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>
+
