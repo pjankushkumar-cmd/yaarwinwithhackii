@@ -84,12 +84,12 @@ function calculateUpcomingPeriod(currentApiPeriodStr) {
 }
 
 // =======================================================================
-// ULTRA HIGH-LEVEL AI DETECT PATTERN ENGINE (10 MICRO SCAN & 50 MACRO SCAN)
+// DYNAMIC COMPREHENSIVE AI DETECT PATTERN ENGINE (A TO Z SYSTEMS LABELED)
 // =======================================================================
 function executePatternAnalysis(upcomingPeriodStr) {
     let periodSeedValue = parseInt(upcomingPeriodStr) || 0;
 
-    // Standard fixed logical mapping pools
+    // Fixed legal configuration arrays for distribution maps
     const GREEN_SMALL_POOL = [1, 3];
     const GREEN_BIG_POOL = [5, 7, 9];
     const RED_SMALL_POOL = [0, 2, 4];
@@ -102,17 +102,17 @@ function executePatternAnalysis(upcomingPeriodStr) {
     if (strictHistoryLog && strictHistoryLog.length > 0) {
         fallbackReferenceNum = parseInt(strictHistoryLog[0].number || 0);
 
-        // FULL DATA STREAM EXTRACT
+        // EXTRACTION SYSTEM: Compile full data stack from local files
         let structuralHistory = strictHistoryLog.slice(0, 50);
         let numericalStream = structuralHistory.map(g => parseInt(g.number || 0));
         let colorTrendMap = numericalStream.map(n => ([1, 3, 5, 7, 9].includes(n)) ? "GREEN" : "RED");
 
         // ---------------------------------------------------------------
-        // AI LAYER 1: MICRO MATRIX SCAN (Targeting the latest 10 results perfectly)
+        // AI LAYER A: MICRO TREND SCANNER (Analyzing Latest 10 Results)
         // ---------------------------------------------------------------
         let microColorTrend = colorTrendMap.slice(0, 10);
         
-        // 1A. Micro Streak Analyzer (Dragon/Trend Loop Detect)
+        // A1. Micro Continuous Streak Handler (Dragon Tracker)
         let microStreak = 1;
         for (let i = 0; i < microColorTrend.length - 1; i++) {
             if (microColorTrend[i] === microColorTrend[i + 1]) {
@@ -122,12 +122,11 @@ function executePatternAnalysis(upcomingPeriodStr) {
             }
         }
         if (microStreak >= 2) {
-            // High multiplier for catching current live wave in top 10 results
-            if (microColorTrend[0] === "GREEN") greenWeight += (microStreak * 45);
-            else redWeight += (microStreak * 45);
+            if (microColorTrend[0] === "GREEN") greenWeight += (microStreak * 55);
+            else redWeight += (microStreak * 55);
         }
 
-        // 1B. Micro Jumper/Oscillator Detector (Alternate Red-Green Loop Detect)
+        // A2. Micro Alternate Jumper Mechanism (RGRG / GRGR Diagnostics)
         let microAlternatingCount = 0;
         for (let i = 0; i < microColorTrend.length - 1; i++) {
             if (microColorTrend[i] !== microColorTrend[i + 1]) {
@@ -137,36 +136,47 @@ function executePatternAnalysis(upcomingPeriodStr) {
             }
         }
         if (microAlternatingCount >= 2) {
-            // Inverts weight to correctly map upcoming break/continuation phase
-            if (microColorTrend[0] === "GREEN") redWeight += (microAlternatingCount * 38);
-            else greenWeight += (microAlternatingCount * 38);
+            // Adjust convergence path inversion weights
+            if (microColorTrend[0] === "GREEN") redWeight += (microAlternatingCount * 42);
+            else greenWeight += (microAlternatingCount * 42);
+        }
+
+        // A3. Micro Mirror Wave Detector (V-Shape Symmetry Evaluation)
+        if (microColorTrend.length >= 4) {
+            if (microColorTrend[0] === microColorTrend[3] && microColorTrend[1] === microColorTrend[2]) {
+                if (microColorTrend[0] === "GREEN") greenWeight += 35; else redWeight += 35;
+            }
         }
 
         // ---------------------------------------------------------------
-        // AI LAYER 2: MACRO MATRIX SCAN (Targeting entire 50 stored records)
+        // AI LAYER B: MACRO ANALYSIS LAYER (Full 50 Records Stored Core)
         // ---------------------------------------------------------------
         let macroGreenCount = colorTrendMap.filter(c => c === "GREEN").length;
         let macroRedCount = colorTrendMap.length - macroGreenCount;
         
-        // Dynamic Density Law: Balancing system overflow tendencies over 50 games
+        // B1. Global Deviation Compensation Law
         if (macroGreenCount !== macroRedCount) {
             if (macroGreenCount < macroRedCount) {
-                greenWeight += 25; // Reversal priority score
+                greenWeight += 30; // Counter-balance weight configuration
             } else {
-                redWeight += 25;
+                redWeight += 30;
             }
         }
 
-        // Numerical Weight Injection based on latest seed volatility
-        let subSumOfTen = numericalStream.slice(0, 10).reduce((a, b) => a + b, 0);
-        if (subSumOfTen % 2 === 0) redWeight += 10; else greenWeight += 10;
+        // B2. Historic Numerical Volatility Multiplier
+        let totalSumOfFifty = numericalStream.reduce((a, b) => a + b, 0);
+        if (totalSumOfFifty % 2 === 0) {
+            greenWeight += 12;
+        } else {
+            redWeight += 12;
+        }
 
     } else {
-        // Fallback baseline logic if history array is completely clean/empty
-        if (periodSeedValue % 2 === 0) greenWeight += 15; else redWeight += 15;
+        // Safe default fallback loop if active streams are unreachable
+        if (periodSeedValue % 2 === 0) greenWeight += 20; else redWeight += 20;
     }
 
-    // AI DECISION CONVERGENCE POINT
+    // AI DECISION ROUTING PARSER
     let chosenColorState = "GREEN";
     if (greenWeight === redWeight) {
         chosenColorState = (periodSeedValue % 3 === 0) ? "RED" : "GREEN";
@@ -174,12 +184,12 @@ function executePatternAnalysis(upcomingPeriodStr) {
         chosenColorState = (greenWeight > redWeight) ? "GREEN" : "RED";
     }
 
-    // MULTI-POOL COMPOSITE GENERATOR FOR DOUBLE NUMBERS (Small and Big)
+    // DOUBLE DYNAMIC TARGET GENERATORS (One Small & One Big)
     let finalSmallNumber = 0;
     let finalBigNumber = 0;
     
-    // Complex shift mapping algorithm using combined micro-macro indicators
-    let computationalShiftIndex = (periodSeedValue + fallbackReferenceNum + strictHistoryLog.length) % 11;
+    // Matrix distribution indexing logic sequence
+    let computationalShiftIndex = (periodSeedValue + fallbackReferenceNum + strictHistoryLog.length) % 13;
 
     if (chosenColorState === "GREEN") {
         finalSmallNumber = GREEN_SMALL_POOL[computationalShiftIndex % GREEN_SMALL_POOL.length];
@@ -189,7 +199,7 @@ function executePatternAnalysis(upcomingPeriodStr) {
         finalBigNumber = RED_BIG_POOL[computationalShiftIndex % RED_BIG_POOL.length];
     }
 
-    // Package results safely to push onto active dashboard layers
+    // Structure parameters data securely for dashboard distribution pipelines
     globalPrediction = {
         period: upcomingPeriodStr,
         color: chosenColorState,
