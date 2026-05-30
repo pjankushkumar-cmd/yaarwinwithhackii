@@ -84,55 +84,75 @@ function calculateUpcomingPeriod(currentApiPeriodStr) {
 }
 
 // =======================================================================
-// EXCLUSIVE DETECTIVE AI ENGINE - DOUBLE PATTERN MATRIX SPECIFICATIONS
+// HIGH-LEVEL DEEP DEPLOYMENT HISTORIC PATTERN ENGINE (50 SAMPLES MATRIX)
 // =======================================================================
 function executePatternAnalysis(upcomingPeriodStr) {
     let periodSeedValue = parseInt(upcomingPeriodStr) || 0;
 
-    // Fixed strict configuration matrices for Colors mapped to numbers boundary
+    // Standard fixed logical mapping configuration constants
     const GREEN_SMALL_POOL = [1, 3];
     const GREEN_BIG_POOL = [5, 7, 9];
-    
     const RED_SMALL_POOL = [0, 2, 4];
     const RED_BIG_POOL = [6, 8];
 
+    // Default historical baseline variables
     let greenWeight = 0;
     let redWeight = 0;
+    let fallbackReferenceNum = 3;
 
-    if (strictHistoryLog && strictHistoryLog.length >= 6) {
-        let numbers = strictHistoryLog.map(g => parseInt(g.number || 0));
+    // Check if the memory array contains active telemetry data
+    if (strictHistoryLog && strictHistoryLog.length > 0) {
+        fallbackReferenceNum = parseInt(strictHistoryLog[0].number || 0);
+
+        // EXTRACTION LAYER 1: Deep parse up to 50 active records from systemic state
+        let structuralHistory = strictHistoryLog.slice(0, 50);
+        let numericalStream = structuralHistory.map(g => parseInt(g.number || 0));
+        let colorTrendMap = numericalStream.map(n => ([1, 3, 5, 7, 9].includes(n)) ? "GREEN" : "RED");
+
+        // EVALUATION LAYER 2: Short-term Micro-Streak Evaluator (Latest 6 rounds)
+        let activeStreakCount = 1;
+        for (let i = 0; i < Math.min(colorTrendMap.length - 1, 5); i++) {
+            if (colorTrendMap[i] === colorTrendMap[i + 1]) {
+                activeStreakCount++;
+            } else {
+                break;
+            }
+        }
+        if (activeStreakCount >= 2) {
+            if (colorTrendMap[0] === "GREEN") greenWeight += (activeStreakCount * 35);
+            else redWeight += (activeStreakCount * 35);
+        }
+
+        // EVALUATION LAYER 3: Oscillating Flip Sequence Detector (Alternating trends)
+        let alternatingStreak = 0;
+        for (let i = 0; i < Math.min(colorTrendMap.length - 1, 5); i++) {
+            if (colorTrendMap[i] !== colorTrendMap[i + 1]) {
+                alternatingStreak++;
+            } else {
+                break;
+            }
+        }
+        if (alternatingStreak >= 2) {
+            if (colorTrendMap[0] === "GREEN") redWeight += (alternatingStreak * 28);
+            else greenWeight += (alternatingStreak * 28);
+        }
+
+        // EVALUATION LAYER 4: Macro Density Ratio Analyzer (Full 50 Records Distribution Score)
+        let globalGreenCount = colorTrendMap.filter(c => c === "GREEN").length;
+        let globalRedCount = colorTrendMap.length - globalGreenCount;
         
-        let colorTrends = numbers.map(n => {
-            return ([1, 3, 5, 7, 9].includes(n)) ? "GREEN" : "RED";
-        });
-
-        // LAYER 1: TREND DIRECTIONAL STREAK MODULATOR
-        let currentStreak = 1;
-        for (let i = 0; i < colorTrends.length - 1; i++) {
-            if (colorTrends[i] === colorTrends[i + 1]) currentStreak++; else break;
-        }
-        if (currentStreak >= 2) {
-            if (colorTrends[0] === "GREEN") greenWeight += (currentStreak * 32);
-            else redWeight += (currentStreak * 32);
+        // Compensate bias score based on macro system standard distribution variance
+        if (globalGreenCount !== globalRedCount) {
+            if (globalGreenCount < globalRedCount) greenWeight += 15; 
+            else redWeight += 15;
         }
 
-        // LAYER 2: INTERMITTENT OSCILLATOR SCANNER
-        let flipStreak = 0;
-        for (let i = 0; i < colorTrends.length - 1; i++) {
-            if (colorTrends[i] !== colorTrends[i + 1]) flipStreak++; else break;
-        }
-        if (flipStreak >= 2) {
-            if (colorTrends[0] === "GREEN") redWeight += (flipStreak * 26);
-            else greenWeight += (flipStreak * 26);
-        }
-
-        // LAYER 3: DYNAMIC TIMESTEP WEIGHT CONVERGENCE
-        if (periodSeedValue % 2 === 0) greenWeight += 12; else redWeight += 12;
     } else {
+        // Fallback structural weight if local memory initialization state has no indices
         if (periodSeedValue % 2 === 0) greenWeight += 10; else redWeight += 10;
     }
 
-    // TARGET COLOR RESOLUTIONS DETERMINED BY WEIGHTS
+    // LAYER 5: VECTOR CONVERGENCE ASSIGNMENT
     let chosenColorState = "GREEN";
     if (greenWeight === redWeight) {
         chosenColorState = (periodSeedValue % 3 === 0) ? "RED" : "GREEN";
@@ -140,19 +160,22 @@ function executePatternAnalysis(upcomingPeriodStr) {
         chosenColorState = (greenWeight > redWeight) ? "GREEN" : "RED";
     }
 
-    // TARGET NUMBERS EXTENDED POOL SELECTORS (ONE SMALL AND ONE BIG)
+    // LAYER 6: MULTI-POOL COMPOSITE DISTRIBUTION (SPLIT PATH MATRIX DESIGN)
     let finalSmallNumber = 0;
     let finalBigNumber = 0;
-    let fallbackIndex = (periodSeedValue + (strictHistoryLog.length ? parseInt(strictHistoryLog[0].number || 0) : 3));
+    
+    // Core deterministic mathematical matrix indexing formula
+    let computationalShiftIndex = (periodSeedValue + fallbackReferenceNum + strictHistoryLog.length) % 7;
 
     if (chosenColorState === "GREEN") {
-        finalSmallNumber = GREEN_SMALL_POOL[fallbackIndex % GREEN_SMALL_POOL.length];
-        finalBigNumber = GREEN_BIG_POOL[fallbackIndex % GREEN_BIG_POOL.length];
+        finalSmallNumber = GREEN_SMALL_POOL[computationalShiftIndex % GREEN_SMALL_POOL.length];
+        finalBigNumber = GREEN_BIG_POOL[computationalShiftIndex % GREEN_BIG_POOL.length];
     } else {
-        finalSmallNumber = RED_SMALL_POOL[fallbackIndex % RED_SMALL_POOL.length];
-        finalBigNumber = RED_BIG_POOL[fallbackIndex % RED_BIG_POOL.length];
+        finalSmallNumber = RED_SMALL_POOL[computationalShiftIndex % RED_SMALL_POOL.length];
+        finalBigNumber = RED_BIG_POOL[computationalShiftIndex % RED_BIG_POOL.length];
     }
 
+    // Package results parameters bundle securely to system distribution structure
     globalPrediction = {
         period: upcomingPeriodStr,
         color: chosenColorState,
@@ -244,4 +267,4 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`[DETECTION CORE ONLINE] Server active on cluster port ${PORT}`));
-
+        
