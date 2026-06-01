@@ -39,7 +39,7 @@ function loadPermanentHistoryDatabase() {
             }
         }
     } catch (err) {
-        console.log("[SYSTEM] Local memory storage synced.");
+        console.log("[SYSTEM] Local memory database synced.");
     }
 }
 
@@ -55,60 +55,51 @@ loadPermanentHistoryDatabase();
 
 let lastProcessedMinuteIndex = -1; 
 let currentLockedPrediction = { 
-    period: "0001", 
-    color: "BIG", 
-    numberSmall: "WAITING",
-    numberBig: "WAITING"
+    period: "1309", 
+    color: "WAIT", 
+    predictNumberSmall: "WAITING",  // FRONTEND BOX 1 KEY FIXED
+    predictNumberBig: "WAITING"     // FRONTEND BOX 2 KEY FIXED
 };
 
 // =======================================================================
-// DYNAMIC 5:30 AM RESET + 1-MIN PERIOD TRACKER + 3-MIN SKIP WAIT LOGIC
+// EXACT 24-HOUR CONTINUOUS TIMELINE + FRONTEND PROPERTY MATRIX
 // =======================================================================
 function executePerfectGameCycle() {
     const now = new Date();
     
-    // Total minutes passed today in system clock (IST Standard)
+    // Total minutes passed since 12:00 AM Midnight (IST Server Time Sync)
     const totalMinutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
     
-    // SUBHA 5:30 AM RESET RULE (5 * 60 + 30 = 330 Minutes)
-    const resetTimeMinutes = 330; 
-    let diffMinutes = totalMinutesSinceMidnight - resetTimeMinutes;
-    
-    // Reset frame calculation logic if time is between midnight and 5:30 AM
-    if (diffMinutes < 0) {
-        diffMinutes = (24 * 60) + diffMinutes; 
-    }
+    // Real-time alignment tracker matching your current active game cycle pattern
+    // Jaise 03:18 AM par chal raha total layout sequence map hoke exact match karega
+    const baseOffsetShift = 1111; 
+    const currentCalculatedPeriod = baseOffsetShift + totalMinutesSinceMidnight;
+    const formattedPeriodDisplay = currentCalculatedPeriod.toString();
 
-    // 1. HAR MINUTE PERIOD NUMBER BADLEGA (Continuous 1-Min Counter)
-    // 5:30 AM exact par base index 0 hoga (yaani period 0000), 5:31 par 0001...
-    const currentPeriodNumber = Math.floor(diffMinutes / 1);
-    const formattedPeriodDisplay = currentPeriodNumber.toString().padStart(4, '0');
+    // Loop fires ONLY when the real-time minute clock ticks forward
+    if (currentCalculatedPeriod !== lastProcessedMinuteIndex) {
+        lastProcessedMinuteIndex = currentCalculatedPeriod;
 
-    // 2. TRUE 3-MINUTE PATTERN & WAIT SKIP SCHEDULER
-    if (currentPeriodNumber !== lastProcessedMinuteIndex) {
-        lastProcessedMinuteIndex = currentPeriodNumber;
-
-        // Check if this specific minute is the 3rd interval match
-        // Rule: Agar (Period % 3 === 1) hai toh real result open hoga, baki dono par WAIT dikhega!
-        if (currentPeriodNumber % 3 === 1) {
+        // Rule: Har 3rd interval sequence block par result active hoga, baaki par WAIT chalega
+        if (currentCalculatedPeriod % 3 === 1) {
             
-            // Server side secure mathematical RNG generation (0 to 9)
+            // Pure mathematical server side RNG selector (0 to 9)
             const rngTargetNumber = Math.floor(Math.random() * 10);
             
-            // AAPKA RULE: 0-4 = SMALL, 5-9 = BIG
+            // AAPKA ABSOLUTE RULE: 0-4 = SMALL, 5-9 = BIG
             let ruleDecisionResult = "SMALL";
             if (rngTargetNumber >= 5 && rngTargetNumber <= 9) {
                 ruleDecisionResult = "BIG";
             }
 
+            // FRONTEND KEYS MAP FIXED: predictNumberSmall aur predictNumberBig exact match kiya hai
             currentLockedPrediction = {
-                period: formattedPeriodDisplay,       // Active sequential period number
-                color: ruleDecisionResult,           // Displays generated result: BIG / SMALL
-                numberSmall: "WAITING",              // Custom template formatting text boxes
-                numberBig: "WAITING"
+                period: formattedPeriodDisplay,
+                color: ruleDecisionResult,
+                predictNumberSmall: "WAITING", 
+                predictNumberBig: "WAITING"   
             };
 
-            // Maintain log inside JSON database
             const currentLogEntry = {
                 issueNumber: formattedPeriodDisplay,
                 number: rngTargetNumber,
@@ -120,23 +111,23 @@ function executePerfectGameCycle() {
             saveToPermanentDatabase();
 
         } else {
-            // AAPKA SKIP RULE: Beech wale do rounds par automatic "WAIT" flash hoga screen par!
+            // Wait sequence matching interval loop
             currentLockedPrediction = {
-                period: formattedPeriodDisplay,       // Period updates smoothly every minute
-                color: "WAIT",                        // Main title updates into WAIT instruction status
-                numberSmall: "WAITING",               // Sub boxes show steady waiting status text
-                numberBig: "WAITING"
+                period: formattedPeriodDisplay,
+                color: "WAIT",
+                predictNumberSmall: "WAITING", 
+                predictNumberBig: "WAITING"   
             };
         }
 
         io.emit('predictionUpdate', currentLockedPrediction);
     } else {
-        // Safe lock maintenance broadcast signal
+        // Keeps the existing payload values totally frozen to avoid rapid fluking
         io.emit('predictionUpdate', currentLockedPrediction);
     }
 }
 
-// Background engine running precise validation checks every 1 second
+// Background core cron ticker running validation updates smoothly every 1 second
 setInterval(executePerfectGameCycle, 1000);
 executePerfectGameCycle();
 
@@ -165,7 +156,7 @@ app.post('/api/user/verify', (req, res) => {
     if (!match) return res.json({ status: 'pending', message: 'Verification status: PENDING!' });
     if (Date.now() > match.expiry) {
         delete uids[uid];
-        return res.json({ status: 'expired', message: 'Active session timing has closed!' });
+        return res.json({ status: 'expired', message: 'Active session window has closed!' });
     }
     res.json({ status: 'approved' });
 });
@@ -175,4 +166,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[PERFECT 5:30AM LOOP TIMELINE ONLINE] Active Port: ${PORT}`));
+server.listen(PORT, () => console.log(`[TOTAL CONTROL ENGINE ACTIVE] Server running on port ${PORT}`));
