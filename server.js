@@ -20,7 +20,7 @@ const ADMIN_SECRET_TOKEN = "OWNER_SECRET_KEY_9988";
 app.get('/admin.html', (req, res) => {
     const token = req.query.token;
     if (token !== ADMIN_SECRET_TOKEN) {
-        return res.status(403).send('<h1>403 Forbidden: Identity Verification Failed!</h1>');
+        return res.status(403).send('<h1>403 Forbidden</h1>');
     }
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
@@ -39,7 +39,7 @@ function loadPermanentHistoryDatabase() {
             }
         }
     } catch (err) {
-        console.log("[SYSTEM] Local memory storage online.");
+        console.log("[SYSTEM] Database synced.");
     }
 }
 
@@ -47,7 +47,7 @@ function saveToPermanentDatabase() {
     try {
         fs.writeFileSync(DB_FILE_PATH, JSON.stringify(strictHistoryLog, null, 2), 'utf8');
     } catch (err) {
-        console.log("[SYSTEM] Database updated successfully.");
+        console.log("[SYSTEM] Write error.");
     }
 }
 
@@ -57,55 +57,49 @@ let lastProcessedMinuteIndex = -1;
 let currentLockedPrediction = { 
     period: "1321", 
     color: "WAIT", 
-    predictNumberSmall: "WAITING",  
-    predictNumberBig: "WAITING",
-    numberSmall: "WAITING",
-    numberBig: "WAITING"
+    predictNumberSmall: "WAIT",  
+    predictNumberBig: "WAIT",
+    numberSmall: "WAIT",
+    numberBig: "WAIT"
 };
 
-// Helper function to generate two distinct random numbers based on BIG/SMALL rule
-function generateTwoNumbers(size) {
-    let pool = [];
-    if (size === "SMALL") {
-        pool = [0, 1, 2, 3, 4]; // Small Pool Numbers
-    } else {
-        pool = [5, 6, 7, 8, 9]; // Big Pool Numbers
-    }
+// Helper function to pick two separate numbers based on the group
+function getTwoGroupNumbers(size) {
+    let pool = (size === "SMALL") ? [0, 1, 2, 3, 4] : [5, 6, 7, 8, 9];
     let shuffled = pool.sort(() => 0.5 - Math.random());
     return {
-        num1: shuffled[0].toString(),
-        num2: shuffled[1].toString()
+        n1: shuffled[0].toString(),
+        n2: shuffled[1].toString()
     };
 }
 
 // =======================================================================
-// EXACT 5:30 AM RESET -> 24-HOUR CONTINUOUS MATHEMATICAL LOGIC
+// EXACT 5:30 AM RESET TIMELINE TIMING MATHEMATICAL ENGINE
 // =======================================================================
 function executePerfectGameCycle() {
     const now = new Date();
     
-    // Total minutes passed since midnight 12:00 AM (IST Sync)
+    // Convert current time to total minutes passed since 12:00 AM Midnight
     const totalMinutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
     
-    // AAPKA RULES MATRIX: 5:30 AM Shift point calculation (330 Minutes)
+    // 5:30 AM base shift reference point (330 minutes)
     const resetTimeMinutes = 330;
     let diffMinutes = totalMinutesSinceMidnight - resetTimeMinutes;
     
-    // Midnight se 5:30 AM ke beech ki timeline ko roll-over handle karna
+    // Handle timeline shift rollover cleanly
     if (diffMinutes < 0) {
         diffMinutes = (24 * 60) + diffMinutes; 
     }
 
-    // Har ek minute par automatic sequence +1 badhegi
-    // Example: Subah 5:30 AM = 0001, Agle din 3:30 AM = 1321 (Absolute Perfect Math!)
+    // Exact formula base logic tracker -> Matches 3:30 AM to 1321 perfectly
     const currentPeriodNumber = Math.floor(diffMinutes / 1) + 1;
     const formattedPeriodDisplay = currentPeriodNumber.toString().padStart(4, '0');
 
-    // Server updates only when the real clock minute increments
+    // System runs calculation ONLY once per exact minute block change
     if (currentPeriodNumber !== lastProcessedMinuteIndex) {
         lastProcessedMinuteIndex = currentPeriodNumber;
 
-        // SKIP LOOP RULE: Har 3rd period par naya result open hoga
+        // 3-Minute Cycle Skip Protocol
         if (currentPeriodNumber % 3 === 1) {
             
             const rngTargetNumber = Math.floor(Math.random() * 10);
@@ -115,17 +109,17 @@ function executePerfectGameCycle() {
                 ruleDecisionResult = "BIG";
             }
 
-            // Pool se do exact numbers nikalna
-            const pair = generateTwoNumbers(ruleDecisionResult);
+            // Extract two exact discrete digits for the boxes
+            const digits = getTwoGroupNumbers(ruleDecisionResult);
 
-            // DOUBLE VARIABLE MAPPING: Dono type ke frontend template keys ko pass kiya hai
+            // FORCE FEED ALL KNOWN FRONTEND VARIABLES (No more waiting strings inside result blocks)
             currentLockedPrediction = {
                 period: formattedPeriodDisplay,
                 color: ruleDecisionResult,
-                predictNumberSmall: pair.num1, // Target Output 1
-                predictNumberBig: pair.num2,   // Target Output 2
-                numberSmall: pair.num1,        // Backup map key
-                numberBig: pair.num2           // Backup map key
+                predictNumberSmall: digits.n1, 
+                predictNumberBig: digits.n2,   
+                numberSmall: digits.n1,        
+                numberBig: digits.n2           
             };
 
             const currentLogEntry = {
@@ -139,31 +133,31 @@ function executePerfectGameCycle() {
             saveToPermanentDatabase();
 
         } else {
-            // Beech ke baaki do rounds par automatic "WAIT" aur "WAITING" set rahega
+            // Static clear text for empty/skip rounds
             currentLockedPrediction = {
                 period: formattedPeriodDisplay,
                 color: "WAIT",
-                predictNumberSmall: "WAITING", 
-                predictNumberBig: "WAITING",
-                numberSmall: "WAITING",
-                numberBig: "WAITING"
+                predictNumberSmall: "WAIT", 
+                predictNumberBig: "WAIT",
+                numberSmall: "WAIT",
+                numberBig: "WAIT"
             };
         }
 
         io.emit('predictionUpdate', currentLockedPrediction);
     } else {
-        // Keeps values strictly frozen for 60 seconds to prevent rapid flashing
+        // Keeps state completely frozen during the active minute interval
         io.emit('predictionUpdate', currentLockedPrediction);
     }
 }
 
-// Background precision scanner running every 1 second
+// System tick check every 1000ms
 setInterval(executePerfectGameCycle, 1000);
 executePerfectGameCycle();
 
 app.post('/api/admin/uid', (req, res) => {
     const { token, uid, action, duration } = req.body;
-    if (token !== ADMIN_SECRET_TOKEN) return res.status(401).json({ error: 'Invalid admin token.' });
+    if (token !== ADMIN_SECRET_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
 
     if (action === 'approve') {
         uids[uid] = { status: 'approved', expiry: Date.now() + (parseInt(duration) * 60 * 1000) };
@@ -175,18 +169,18 @@ app.post('/api/admin/uid', (req, res) => {
 });
 
 app.get('/api/admin/uids', (req, res) => {
-    if (req.query.token !== ADMIN_SECRET_TOKEN) return res.status(401).json({ error: 'Invalid admin token.' });
+    if (req.query.token !== ADMIN_SECRET_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
     res.json(uids);
 });
 
 app.post('/api/user/verify', (req, res) => {
     const { uid } = req.body;
-    if (!uid) return res.json({ status: 'invalid', message: 'Missing UID.' });
+    if (!uid) return res.json({ status: 'invalid' });
     const match = uids[uid];
-    if (!match) return res.json({ status: 'pending', message: 'Verification status: PENDING!' });
+    if (!match) return res.json({ status: 'pending' });
     if (Date.now() > match.expiry) {
         delete uids[uid];
-        return res.json({ status: 'expired', message: 'Session expired!' });
+        return res.json({ status: 'expired' });
     }
     res.json({ status: 'approved' });
 });
@@ -196,4 +190,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[SYSTEM TIMELINE SYNCHRONIZED] App live on port ${PORT}`));
+server.listen(PORT, () => console.log(`Engine live on port ${PORT}`));
