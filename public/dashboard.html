@@ -51,7 +51,7 @@
             text-align: center;
         }
         .num-main-val {
-            font-size: 34px;
+            font-size: 26px; /* Optimized font length validation for string parameters */
             font-weight: 900;
             font-family: monospace;
             display: block;
@@ -64,7 +64,7 @@
             text-transform: uppercase;
         }
         .color-badge {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 900;
             letter-spacing: 2px;
             text-shadow: 0 0 20px rgba(255,255,255,0.25);
@@ -91,7 +91,7 @@
             
             <hr style="border:0; border-top: 1px solid rgba(255,255,255,0.08); margin: 22px 0;">
 
-            <div style="font-size: 14px; margin-bottom: 6px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">Target Color Node</div>
+            <div style="font-size: 14px; margin-bottom: 6px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">Target Prediction Node</div>
             <div id="colorResult" class="color-badge" style="margin-bottom: 25px;">-</div>
 
             <div style="font-size: 14px; margin-bottom: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">Optimal Target Outputs</div>
@@ -151,16 +151,19 @@
             if(data && data.period) {
                 document.getElementById('periodId').innerHTML = `Period: <span style="color:var(--neon-cyan); font-weight:800; font-size:26px;">${data.period}</span>`;
                 
-                document.getElementById('predictNumberSmall').innerText = data.numberSmall !== undefined ? data.numberSmall : "-";
-                document.getElementById('predictNumberBig').innerText = data.numberBig !== undefined ? data.numberBig : "-";
+                // Dono bottom blocks par direct default value string map ho jayegi
+                document.getElementById('predictNumberSmall').innerText = data.numberSmall !== undefined ? data.numberSmall : "WAIT";
+                document.getElementById('predictNumberBig').innerText = data.numberBig !== undefined ? data.numberBig : "WAIT";
                 
                 let clrElement = document.getElementById('colorResult');
-                if(data.color === "GREEN") {
-                    clrElement.style.color = "var(--neon-green)";
-                    clrElement.innerText = "GREEN";
-                } else if(data.color === "RED") {
-                    clrElement.style.color = "var(--neon-red)";
-                    clrElement.innerText = "RED";
+                
+                // Color parameters text conversion algorithms to match Big / Small text tags
+                if(data.color === "BIG") {
+                    clrElement.style.color = "var(--neon-green)"; // Big ke liye Green aesthetic color layout
+                    clrElement.innerText = "BIG";
+                } else if(data.color === "SMALL") {
+                    clrElement.style.color = "var(--neon-pink)";  // Small ke liye Pink/Red neon shade layout
+                    clrElement.innerText = "SMALL";
                 } else {
                     clrElement.style.color = "#ffffff";
                     clrElement.innerText = data.color;
@@ -177,4 +180,3 @@
     </script>
 </body>
 </html>
-
