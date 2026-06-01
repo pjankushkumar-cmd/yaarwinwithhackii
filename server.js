@@ -40,7 +40,7 @@ function loadPermanentHistoryDatabase() {
             }
         }
     } catch (err) {
-        console.log("[MAIN NODE] Local telemetry stack initialized successfully.");
+        console.log("[MAIN NODE] Database initialized successfully.");
     }
 }
 
@@ -48,16 +48,16 @@ function saveToPermanentDatabase() {
     try {
         fs.writeFileSync(DB_FILE_PATH, JSON.stringify(strictHistoryLog, null, 2), 'utf8');
     } catch (err) {
-        console.log("[MAIN NODE] Telemetry cache error:", err);
+        console.log("[MAIN NODE] Database write error:", err);
     }
 }
 
 loadPermanentHistoryDatabase();
 
-// API ENDPOINT (Sirf fallback ya tracking database ke liye, primary period calculation standard time-block se hogi)
+// API SE ONLY PERIOD NUMBER UTHEGA
 const GAME_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=50&gameId=1";
 
-let lastProcessedBlockId = -1; 
+let nextAllowedTargetPeriodNum = 0n; 
 let currentLockedPrediction = { 
     period: "WAIT", 
     color: "WAIT", 
@@ -66,79 +66,90 @@ let currentLockedPrediction = {
 };
 
 // =======================================================================
-// TRULY SYNCHRONIZED 3-MINUTE BLOCK & RNG ENGINE
+// PURE API PERIOD DRIVEN + SERVER SIDE RNG ENGINE
 // =======================================================================
-function calculateTrue3MinPrediction() {
-    const now = new Date();
-    
-    // Date parts string format setup (YYYYMMDD)
-    const year = now.getFullYear();
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const day = now.getDate().toString().padStart(2, '0');
-    const datePrefixStr = `${year}${month}${day}`;
+function processLiveApiAndGenerateRNG(livePeriodStr) {
+    try {
+        const currentLivePeriodBigInt = BigInt(livePeriodStr);
 
-    // Har ghante aur minute ko total minutes me badal kar pure 3-minute block nikalna
-    const totalMinutes = now.getHours() * 60 + now.getMinutes();
-    const current3MinBlockId = Math.floor(totalMinutes / 3);
-    
-    // UPCOMING ROUND: Agla block sequence number (Current + 1)
-    const upcomingBlockSequence = current3MinBlockId + 1;
-    const fullUpcomingPeriodStr = `${datePrefixStr}${upcomingBlockSequence.toString().padStart(4, '0')}`;
-    
-    // AAPKI REQUIREMENT: Display par dikhane ke liye sirf last ke 4 numbers/akshar filter karna
-    const last4DigitsPeriod = fullUpcomingPeriodStr.slice(-4);
+        // Jab tak live API ka period hamare purane target tak nahi pahunchta, data freeze rakho
+        if (currentLivePeriodBigInt >= nextAllowedTargetPeriodNum) {
+            
+            // 3-Minute Rule: Current live API period se exactly 3 rounds aage ka target (+3)
+            nextAllowedTargetPeriodNum = currentLivePeriodBigInt + 3n;
+            
+            // Dashboard par dikhane ke liye aakhri ke 4 akshar (e.g. 1265)
+            const filteredLast4Digits = nextAllowedTargetPeriodNum.toString().slice(-4);
 
-    // CRITICAL SECURITY FIX: Jab tak 3 minute poore nahi hote, RNG dobara chal kar flip nahi hoga!
-    if (current3MinBlockId !== lastProcessedBlockId) {
-        lastProcessedBlockId = current3MinBlockId;
+            // API KA DATA IGNORE -> PURE SERVER SIDE RNG (0 se 9 random number choice)
+            const rngTargetNumber = Math.floor(Math.random() * 10);
+            
+            // AAPKA RULE: 0-4 = SMALL, 5-9 = BIG
+            let ruleDecisionResult = "SMALL";
+            if (rngTargetNumber >= 5 && rngTargetNumber <= 9) {
+                ruleDecisionResult = "BIG";
+            }
 
-        // Pure Server side unique RNG choice selector (0 se 9)
-        const rngTargetNumber = Math.floor(Math.random() * 10);
-        
-        // AAPKA SPECIFIC RULE: 0-4 = SMALL, 5-9 = BIG
-        let ruleDecisionResult = "SMALL";
-        if (rngTargetNumber >= 5 && rngTargetNumber <= 9) {
-            ruleDecisionResult = "BIG";
+            // Client Payload Setup
+            currentLockedPrediction = {
+                period: filteredLast4Digits, 
+                color: ruleDecisionResult,        // Main title strip par BIG / SMALL dikhega
+                numberSmall: "WAIT",             // Pattern A aur B ke andar automatic 'WAIT' text locked
+                numberBig: "WAIT"
+            };
+
+            // Local database log maintainer
+            const currentLogEntry = {
+                issueNumber: nextAllowedTargetPeriodNum.toString(),
+                number: rngTargetNumber,
+                colour: ruleDecisionResult === "BIG" ? "GREEN" : "RED",
+                size: ruleDecisionResult
+            };
+
+            strictHistoryLog.unshift(currentLogEntry);
+            if (strictHistoryLog.length > 50) strictHistoryLog = strictHistoryLog.slice(0, 50);
+            saveToPermanentDatabase();
+
+            io.emit('predictionUpdate', currentLockedPrediction);
+        } else {
+            // Agar chalte hue round ke 3 rounds abhi pure nahi hue, toh data ko strictly freeze rakho
+            io.emit('predictionUpdate', currentLockedPrediction);
         }
-
-        // Response structures block generation
-        currentLockedPrediction = {
-            period: last4DigitsPeriod,  // Dashboard par ab sirf aakhri 4 akshar hi jayenge (e.g. 1265)
-            color: ruleDecisionResult,  // Main result head strip text: BIG ya SMALL
-            numberSmall: "WAIT",       // Pattern A default to clean string
-            numberBig: "WAIT"          // Pattern B default to clean string
-        };
-
-        // Static configuration structure ko log history layer me save karna
-        const currentLogEntry = {
-            issueNumber: fullUpcomingPeriodStr,
-            number: rngTargetNumber,
-            colour: ruleDecisionResult === "BIG" ? "GREEN" : "RED",
-            size: ruleDecisionResult
-        };
-
-        strictHistoryLog.unshift(currentLogEntry);
-        if (strictHistoryLog.length > 50) strictHistoryLog = strictHistoryLog.slice(0, 50);
-        saveToPermanentDatabase();
-
-        io.emit('predictionUpdate', currentLockedPrediction);
-    } else {
-        // Agar chalte hue round ke 3 minute abhi pure nahi hue, toh wahi purana prediction data data freeze bhejte raho
+    } catch (e) {
         io.emit('predictionUpdate', currentLockedPrediction);
     }
 }
 
-// Background monitoring synchronization frequency engine (Har 2 second me sync data maintain karega)
-setInterval(calculateTrue3MinPrediction, 2000);
-calculateTrue3MinPrediction();
-
-// Optional background thread to silent sync data metrics from your api without breaking local blocks
-async function backgroundApiLogging() {
+async function fetchLiveGameDataFromApi() {
     try {
-        await axios.get(GAME_API, { timeout: 4000 });
-    } catch(e){}
+        const response = await axios.get(GAME_API, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+                'Connection': 'keep-alive'
+            },
+            timeout: 5000
+        });
+
+        if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
+            const latestIncomingRound = response.data.data.list[0];
+            
+            // Extract ONLY period string number from API
+            let rawApiPeriodStr = latestIncomingRound.issueNumber.toString();
+            
+            // Run system execution rules
+            processLiveApiAndGenerateRNG(rawApiPeriodStr);
+        } else {
+            io.emit('predictionUpdate', currentLockedPrediction);
+        }
+    } catch (networkError) {
+        io.emit('predictionUpdate', currentLockedPrediction);
+    }
 }
-setInterval(backgroundApiLogging, 20000);
+
+// Har 3.5 second mein background sync chalega bina prediction flip kiye
+setInterval(fetchLiveGameDataFromApi, 3500);
+fetchLiveGameDataFromApi();
 
 app.post('/api/admin/uid', (req, res) => {
     const { token, uid, action, duration } = req.body;
@@ -175,4 +186,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[3-MIN REAL TIME NODE] System fully operational on port ${PORT}`));
+server.listen(PORT, () => console.log(`[RNG SYSTEM LIVE] Server active on port ${PORT}`));
