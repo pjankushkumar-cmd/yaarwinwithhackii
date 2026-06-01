@@ -37,7 +37,7 @@ function loadPermanentHistoryDatabase() {
             const parsedData = JSON.parse(rawData);
             if (Array.isArray(parsedData)) {
                 strictHistoryLog = parsedData.slice(0, 50);
-                console.log(`[MAIN NODE] Syncing database logs: ${strictHistoryLog.length}`);
+                console.log(`[MAIN NODE] Database sync successful: ${strictHistoryLog.length}`);
             }
         }
     } catch (err) {
@@ -55,95 +55,99 @@ function saveToPermanentDatabase() {
 
 loadPermanentHistoryDatabase();
 
-// Aapki original WinGo Game API URL (Sirf Period Number dynamically sync karne ke liye)
-const GAME_API_ENDPOINT = "https://91clubapi.onrender.com/api/wingo/1min";
+// AAPKI LIVE ORIGINAL WIN-GO GAME API ENDPOINT
+const GAME_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=50&gameId=1";
 
 let globalPrediction = { 
-    period: "Loading...", 
-    color: "GREEN", 
-    numberSmall: 0,
-    numberBig: "SMALL", 
+    period: "Fetching Live API...", 
+    color: "WAIT", 
+    numberSmall: "WAIT",
+    numberBig: "WAIT", 
     timestamp: "00:00:00" 
 };
 
-// =======================================================================
-// SYSTEM CORE: API PERIOD SYNC + CUSTOM 3-MIN RNG ENGINE
-// =======================================================================
-async function updatePrediction() {
+// Pure String Mathematical Node logic to safely add 3 rounds to API issue number
+function calculateUpcoming3MinPeriod(currentApiPeriodStr) {
+    if (!currentApiPeriodStr) return "Syncing...";
     try {
-        // Step 1: API se current period number fetch karna
-        const response = await axios.get(GAME_API_ENDPOINT);
-        if (response.data && response.data.data && response.data.data.games) {
-            const latestGameFromApi = response.data.data.games[0];
-            const currentApiPeriodStr = latestGameFromApi.issueNumber; // e.g. "202606021001"
-            
-            if (currentApiPeriodStr) {
-                // Step 2: 3-Minute ke baad aane wale upcoming target period ki calculation
-                // Hum last digits (sequence) ko extract karke usmein 3 rounds plus kar rahe hain
-                const basePeriodInt = BigInt(currentApiPeriodStr);
-                const upcoming3MinPeriodStr = (basePeriodInt + 3n).toString();
-
-                // Step 3: Pure Online Server RNG Engine Logic execution
-                // Kisi external API result par depend nahi karega, pure random number generate hoga
-                const rngTargetNumber = Math.floor(Math.random() * 10);
-                
-                // YOUR EXCLUSIVE RULE: 0-4 = SMALL, 5-9 = BIG
-                let calculationResultString = "";
-                if (rngTargetNumber >= 0 && rngTargetNumber <= 4) {
-                    calculationResultString = "SMALL";
-                } else {
-                    calculationResultString = "BIG";
-                }
-
-                // UI Aesthetics aur UI breakdown se bachne ke liye dynamic colors allocation
-                let colorBadgeState = "GREEN";
-                if ([2, 4, 6, 8].includes(rngTargetNumber)) {
-                    colorBadgeState = "RED";
-                } else if ([1, 3, 7, 9].includes(rngTargetNumber)) {
-                    colorBadgeState = "GREEN";
-                } else if (rngTargetNumber === 0) {
-                    colorBadgeState = "RED-VIOLET";
-                } else if (rngTargetNumber === 5) {
-                    colorBadgeState = "GREEN-VIOLET";
-                }
-
-                // Step 4: UI format map payload update
-                globalPrediction = {
-                    period: upcoming3MinPeriodStr, // Yeh dashboard par 3-minute baad wala target period dikhayega
-                    color: colorBadgeState,
-                    numberSmall: rngTargetNumber, // Box me random number show karega
-                    numberBig: calculationResultString, // Box me exact BIG ya SMALL text string show karega
-                    timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
-                };
-
-                // Local logs database validation structure
-                const currentLogEntry = {
-                    issueNumber: upcoming3MinPeriodStr,
-                    number: rngTargetNumber,
-                    colour: colorBadgeState,
-                    size: calculationResultString
-                };
-
-                if (strictHistoryLog.length === 0 || strictHistoryLog[0].issueNumber !== upcoming3MinPeriodStr) {
-                    strictHistoryLog.unshift(currentLogEntry);
-                    if (strictHistoryLog.length > 50) {
-                        strictHistoryLog = strictHistoryLog.slice(0, 50);
-                    }
-                    saveToPermanentDatabase();
-                }
-
-                // Socket nodes data transfer broadcast
-                io.emit('predictionUpdate', globalPrediction);
-            }
-        }
-    } catch (error) {
-        console.log("[DETECTION ERROR] API core sync fallback active. Retrying channel connection...");
+        const basePeriodInt = BigInt(currentApiPeriodStr);
+        // Live API period number se exactly 3 rounds aage ka target coordinate karega
+        const upcoming3MinPeriodStr = (basePeriodInt + 3n).toString();
+        return upcoming3MinPeriodStr;
+    } catch (e) {
+        return currentApiPeriodStr;
     }
 }
 
-// Har 2-5 seconds me background check algorithm trigger karna taaki period automatic accurately sync rahe
-setInterval(updatePrediction, 3000);
-updatePrediction();
+// =======================================================================
+// CUSTOM HIGH-SECURITY SERVER RNG PREDICTOR ENGINE
+// =======================================================================
+function generateRNGPrediction(upcomingPeriodStr) {
+    // 0 se 9 ke beech computer internally ek random number choose karega
+    const rngTargetNumber = Math.floor(Math.random() * 10);
+    
+    // AAPKA RULES SYSTEM: 0-4 = SMALL, 5-9 = BIG
+    let ruleDecisionResult = "SMALL";
+    if (rngTargetNumber >= 5 && rngTargetNumber <= 9) {
+        ruleDecisionResult = "BIG";
+    }
+
+    // Dashboard dynamic formats configuration mappings
+    globalPrediction = {
+        period: upcomingPeriodStr,
+        color: ruleDecisionResult,  // Dashboard par GREEN/RED ki jagah seedhe BIG/SMALL dikhega
+        numberSmall: "WAIT",       // Pattern A box clean text string format
+        numberBig: "WAIT",         // Pattern B box clean text string format
+        timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
+    };
+
+    io.emit('predictionUpdate', globalPrediction);
+}
+
+async function fetchLiveGameDataFromApi() {
+    try {
+        // High-quality headers lagaye hain taaki Render server block na ho
+        const response = await axios.get(GAME_API, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+                'Connection': 'keep-alive'
+            },
+            timeout: 5000
+        });
+
+        if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
+            const incomingApiList = response.data.data.list;
+            const latestIncomingRound = incomingApiList[0];
+
+            if (strictHistoryLog.length === 0 || strictHistoryLog[0].issueNumber !== latestIncomingRound.issueNumber) {
+                strictHistoryLog.unshift(latestIncomingRound);
+                if (strictHistoryLog.length > 50) {
+                    strictHistoryLog = strictHistoryLog.slice(0, 50);
+                }
+                saveToPermanentDatabase(); 
+            }
+
+            // API se live current issue number uthana
+            let rawApiPeriodStr = latestIncomingRound.issueNumber.toString();
+            
+            // 3-minute structural sequence forward update trigger karna
+            let safeUpcomingPeriod = calculateUpcoming3MinPeriod(rawApiPeriodStr);
+            generateRNGPrediction(safeUpcomingPeriod);
+        }
+    } catch (networkError) {
+        console.log("[DETECTION NOTICE] API Request delayed. Retrying tracking link safely...");
+        // Fallback protocol checks local storage tracking logs if network times out
+        if(strictHistoryLog.length > 0) {
+            let lastSavedPeriod = strictHistoryLog[0].issueNumber.toString();
+            generateRNGPrediction(calculateUpcoming3MinPeriod(lastSavedPeriod));
+        }
+    }
+}
+
+// Render server limits aur API blocking se bachne ke liye safe interval (15 Seconds) loop set kiya hai
+setInterval(fetchLiveGameDataFromApi, 15000);
+fetchLiveGameDataFromApi();
 
 app.post('/api/admin/uid', (req, res) => {
     const { token, uid, action, duration } = req.body;
@@ -180,4 +184,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[CORE SYSTEM ONLINE] Running server smoothly on port ${PORT}`));
+server.listen(PORT, () => console.log(`[CORE EXCLUSIVE ONLINE] Mainframe active on port ${PORT}`));
