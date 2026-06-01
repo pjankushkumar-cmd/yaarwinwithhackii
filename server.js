@@ -63,10 +63,11 @@ let currentLockedPrediction = {
     numberBig: "WAIT"
 };
 
-// Helper function to pick two separate numbers based on the group
+// Helper function to pick two separate numbers based on the group (FIXED BUGS)
 function getTwoGroupNumbers(size) {
     let pool = (size === "SMALL") ? [0, 1, 2, 3, 4] : [5, 6, 7, 8, 9];
-    let shuffled = pool.sort(() => 0.5 - Math.random());
+    // Array copy karke slice logic se static random shuffle generate karna
+    let shuffled = [...pool].sort(() => 0.5 - Math.random());
     return {
         n1: shuffled[0].toString(),
         n2: shuffled[1].toString()
@@ -74,10 +75,11 @@ function getTwoGroupNumbers(size) {
 }
 
 // =======================================================================
-// EXACT 5:30 AM RESET TIMELINE TIMING MATHEMATICAL ENGINE
+// EXACT 5:30 AM RESET TIMELINE TIMING MATHEMATICAL ENGINE (FIXED)
 // =======================================================================
 function executePerfectGameCycle() {
-    const now = new Date();
+    // SERVER TIME FORCED TO INDIAN STANDARD TIME (IST) DIRECT INTERFACE
+    const now = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
     
     // Convert current time to total minutes passed since 12:00 AM Midnight
     const totalMinutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
@@ -112,7 +114,7 @@ function executePerfectGameCycle() {
             // Extract two exact discrete digits for the boxes
             const digits = getTwoGroupNumbers(ruleDecisionResult);
 
-            // FORCE FEED ALL KNOWN FRONTEND VARIABLES (No more waiting strings inside result blocks)
+            // FORCE FEED ALL KNOWN FRONTEND VARIABLES (Dono template formats ko backup variable pass kiya hai)
             currentLockedPrediction = {
                 period: formattedPeriodDisplay,
                 color: ruleDecisionResult,
