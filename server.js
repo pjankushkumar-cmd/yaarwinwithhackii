@@ -1,7 +1,6 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
@@ -21,7 +20,7 @@ const ADMIN_SECRET_TOKEN = "OWNER_SECRET_KEY_9988";
 app.get('/admin.html', (req, res) => {
     const token = req.query.token;
     if (token !== ADMIN_SECRET_TOKEN) {
-        return res.status(403).send('<h1>403 Forbidden: Root Admin Identity Verification Failed!</h1>');
+        return res.status(403).send('<h1>403 Forbidden: Identity Verification Failed!</h1>');
     }
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
@@ -40,7 +39,7 @@ function loadPermanentHistoryDatabase() {
             }
         }
     } catch (err) {
-        console.log("[MAIN NODE] Database initialized successfully.");
+        console.log("[SYSTEM] Local database history logged.");
     }
 }
 
@@ -48,108 +47,93 @@ function saveToPermanentDatabase() {
     try {
         fs.writeFileSync(DB_FILE_PATH, JSON.stringify(strictHistoryLog, null, 2), 'utf8');
     } catch (err) {
-        console.log("[MAIN NODE] Database write error:", err);
+        console.log("[SYSTEM] Database write error:", err);
     }
 }
 
 loadPermanentHistoryDatabase();
 
-// API SE ONLY PERIOD NUMBER UTHEGA
-const GAME_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=50&gameId=1";
-
-let nextAllowedTargetPeriodNum = 0n; 
+// Global states to manage 1-min period tracking and 3-min prediction gap
+let lastProcessed1MinIndex = -1;
+let currentLockedResult = "BIG"; 
 let currentLockedPrediction = { 
-    period: "WAIT", 
+    period: "0002", 
     color: "WAIT", 
     numberSmall: "WAIT",
     numberBig: "WAIT"
 };
 
 // =======================================================================
-// PURE API PERIOD DRIVEN + SERVER SIDE RNG ENGINE
+// HYBRID ENGINE: 1-MINUTE PERIOD COUNTER + 3-MINUTE PREDICTION GAP
 // =======================================================================
-function processLiveApiAndGenerateRNG(livePeriodStr) {
-    try {
-        const currentLivePeriodBigInt = BigInt(livePeriodStr);
+function executeAutomatedTimeBlock() {
+    const now = new Date();
+    
+    // Total minutes passed today inside system clock (IST sync)
+    const totalMinutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
+    
+    // 5:30 AM Shift Reset Rule (5 * 60 + 30 = 330 Minutes)
+    const resetTimeMinutes = 330; 
+    let diffMinutes = totalMinutesSinceMidnight - resetTimeMinutes;
+    
+    if (diffMinutes < 0) {
+        diffMinutes = (24 * 60) + diffMinutes; 
+    }
 
-        // Jab tak live API ka period hamare purane target tak nahi pahunchta, data freeze rakho
-        if (currentLivePeriodBigInt >= nextAllowedTargetPeriodNum) {
-            
-            // 3-Minute Rule: Current live API period se exactly 3 rounds aage ka target (+3)
-            nextAllowedTargetPeriodNum = currentLivePeriodBigInt + 3n;
-            
-            // Dashboard par dikhane ke liye aakhri ke 4 akshar (e.g. 1265)
-            const filteredLast4Digits = nextAllowedTargetPeriodNum.toString().slice(-4);
+    // 1. GAME IS 1-MINUTE BASED (Period updates every 1 minute)
+    const current1MinPeriodIndex = Math.floor(diffMinutes / 1) + 1;
+    const upcomingPeriodSequence = current1MinPeriodIndex + 1;
+    const formattedPeriodDisplay = upcomingPeriodSequence.toString().padStart(4, '0');
 
-            // API KA DATA IGNORE -> PURE SERVER SIDE RNG (0 se 9 random number choice)
-            const rngTargetNumber = Math.floor(Math.random() * 10);
-            
-            // AAPKA RULE: 0-4 = SMALL, 5-9 = BIG
-            let ruleDecisionResult = "SMALL";
-            if (rngTargetNumber >= 5 && rngTargetNumber <= 9) {
-                ruleDecisionResult = "BIG";
-            }
+    // 2. PREDICTION HAS A 3-MINUTE GAP (Changes only every 3 minutes)
+    const current3MinBlockId = Math.floor(diffMinutes / 3);
 
-            // Client Payload Setup
-            currentLockedPrediction = {
-                period: filteredLast4Digits, 
-                color: ruleDecisionResult,        // Main title strip par BIG / SMALL dikhega
-                numberSmall: "WAIT",             // Pattern A aur B ke andar automatic 'WAIT' text locked
-                numberBig: "WAIT"
-            };
+    // Check if a new 1-minute period has arrived
+    if (current1MinPeriodIndex !== lastProcessed1MinIndex) {
+        lastProcessed1MinIndex = current1MinPeriodIndex;
 
-            // Local database log maintainer
+        // RNG triggers ONLY when the 3-minute block changes
+        // Baki ke beech ke 2 minutes mein yeh automatic purana result hi hold rakhega (Freeze Rule)
+        const rngTargetNumber = Math.floor(Math.random() * 10);
+        let ruleDecisionResult = "SMALL";
+        if (rngTargetNumber >= 5 && rngTargetNumber <= 9) {
+            ruleDecisionResult = "BIG";
+        }
+
+        // Static variable updates only when a new 3-min window hits
+        if (diffMinutes % 3 === 0) {
+            currentLockedResult = ruleDecisionResult;
+
+            // Log history entries safely
             const currentLogEntry = {
-                issueNumber: nextAllowedTargetPeriodNum.toString(),
+                issueNumber: formattedPeriodDisplay,
                 number: rngTargetNumber,
-                colour: ruleDecisionResult === "BIG" ? "GREEN" : "RED",
-                size: ruleDecisionResult
+                colour: currentLockedResult === "BIG" ? "GREEN" : "RED",
+                size: currentLockedResult
             };
-
             strictHistoryLog.unshift(currentLogEntry);
             if (strictHistoryLog.length > 50) strictHistoryLog = strictHistoryLog.slice(0, 50);
             saveToPermanentDatabase();
-
-            io.emit('predictionUpdate', currentLockedPrediction);
-        } else {
-            // Agar chalte hue round ke 3 rounds abhi pure nahi hue, toh data ko strictly freeze rakho
-            io.emit('predictionUpdate', currentLockedPrediction);
         }
-    } catch (e) {
+
+        // Broadcaster structure creation
+        currentLockedPrediction = {
+            period: formattedPeriodDisplay,    // Har 1 minute mein badlega (0002 -> 0003)
+            color: currentLockedResult,        // Har 3 minute mein ek baar badlega (Freeze Gap)
+            numberSmall: "WAIT",
+            numberBig: "WAIT"
+        };
+
+        io.emit('predictionUpdate', currentLockedPrediction);
+    } else {
+        // Keeps emitting the same state if within the same minute tick
         io.emit('predictionUpdate', currentLockedPrediction);
     }
 }
 
-async function fetchLiveGameDataFromApi() {
-    try {
-        const response = await axios.get(GAME_API, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-                'Accept': 'application/json, text/plain, */*',
-                'Connection': 'keep-alive'
-            },
-            timeout: 5000
-        });
-
-        if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
-            const latestIncomingRound = response.data.data.list[0];
-            
-            // Extract ONLY period string number from API
-            let rawApiPeriodStr = latestIncomingRound.issueNumber.toString();
-            
-            // Run system execution rules
-            processLiveApiAndGenerateRNG(rawApiPeriodStr);
-        } else {
-            io.emit('predictionUpdate', currentLockedPrediction);
-        }
-    } catch (networkError) {
-        io.emit('predictionUpdate', currentLockedPrediction);
-    }
-}
-
-// Har 3.5 second mein background sync chalega bina prediction flip kiye
-setInterval(fetchLiveGameDataFromApi, 3500);
-fetchLiveGameDataFromApi();
+// Background system clock core ticks every 1 second smoothly
+setInterval(executeAutomatedTimeBlock, 1000);
+executeAutomatedTimeBlock();
 
 app.post('/api/admin/uid', (req, res) => {
     const { token, uid, action, duration } = req.body;
@@ -171,12 +155,12 @@ app.get('/api/admin/uids', (req, res) => {
 
 app.post('/api/user/verify', (req, res) => {
     const { uid } = req.body;
-    if (!uid) return res.json({ status: 'invalid', message: 'Credentials parameter can not be null.' });
+    if (!uid) return res.json({ status: 'invalid', message: 'Credentials parameter value missing.' });
     const match = uids[uid];
-    if (!match) return res.json({ status: 'pending', message: 'Access node verification: PENDING!' });
+    if (!match) return res.json({ status: 'pending', message: 'Verification profile: PENDING!' });
     if (Date.now() > match.expiry) {
         delete uids[uid];
-        return res.json({ status: 'expired', message: 'Active session window has closed!' });
+        return res.json({ status: 'expired', message: 'Active session timing elapsed!' });
     }
     res.json({ status: 'approved' });
 });
@@ -186,4 +170,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[RNG SYSTEM LIVE] Server active on port ${PORT}`));
+server.listen(PORT, () => console.log(`[HYBRID 1M-COUNTER 3M-GAP ENGINE ONLINE] Port: ${PORT}`));
