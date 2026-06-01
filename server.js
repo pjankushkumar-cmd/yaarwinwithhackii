@@ -37,7 +37,7 @@ function loadPermanentHistoryDatabase() {
             const parsedData = JSON.parse(rawData);
             if (Array.isArray(parsedData)) {
                 strictHistoryLog = parsedData.slice(0, 50);
-                console.log(`[MAIN NODE] Syncing system configurations: ${strictHistoryLog.length}`);
+                console.log(`[MAIN NODE] Syncing database logs: ${strictHistoryLog.length}`);
             }
         }
     } catch (err) {
@@ -55,204 +55,94 @@ function saveToPermanentDatabase() {
 
 loadPermanentHistoryDatabase();
 
-function getCurrentWallclockPeriod() {
-    const now = new Date();
-    const totalMinutes = now.getHours() * 60 + now.getMinutes();
-    return totalMinutes.toString().padStart(4, '0');
-}
+// Aapki original WinGo Game API URL (Sirf Period Number dynamically sync karne ke liye)
+const GAME_API_ENDPOINT = "https://91clubapi.onrender.com/api/wingo/1min";
 
 let globalPrediction = { 
-    period: getCurrentWallclockPeriod(), 
+    period: "Loading...", 
     color: "GREEN", 
-    numberSmall: 3,
-    numberBig: 7, 
+    numberSmall: 0,
+    numberBig: "SMALL", 
     timestamp: "00:00:00" 
 };
 
-const GAME_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=50&gameId=1";
-
-function calculateUpcomingPeriod(currentApiPeriodStr) {
-    let targetFourDigits = "";
-    if (currentApiPeriodStr && currentApiPeriodStr.length >= 4) {
-        targetFourDigits = currentApiPeriodStr.slice(-4);
-    } else {
-        targetFourDigits = getCurrentWallclockPeriod();
-    }
-    let incrementedValue = parseInt(targetFourDigits) + 1;
-    if (incrementedValue > 9999) { incrementedValue = 0; }
-    return incrementedValue.toString().padStart(4, '0');
-}
-
 // =======================================================================
-// DYNAMIC COMPREHENSIVE AI DETECT PATTERN ENGINE (A TO Z SYSTEMS LABELED)
+// SYSTEM CORE: API PERIOD SYNC + CUSTOM 3-MIN RNG ENGINE
 // =======================================================================
-function executePatternAnalysis(upcomingPeriodStr) {
-    let periodSeedValue = parseInt(upcomingPeriodStr) || 0;
-
-    // Fixed legal configuration arrays for distribution maps
-    const GREEN_SMALL_POOL = [1, 3];
-    const GREEN_BIG_POOL = [5, 7, 9];
-    const RED_SMALL_POOL = [0, 2, 4];
-    const RED_BIG_POOL = [6, 8];
-
-    let greenWeight = 0;
-    let redWeight = 0;
-    let fallbackReferenceNum = 3;
-
-    if (strictHistoryLog && strictHistoryLog.length > 0) {
-        fallbackReferenceNum = parseInt(strictHistoryLog[0].number || 0);
-
-        // EXTRACTION SYSTEM: Compile full data stack from local files
-        let structuralHistory = strictHistoryLog.slice(0, 50);
-        let numericalStream = structuralHistory.map(g => parseInt(g.number || 0));
-        let colorTrendMap = numericalStream.map(n => ([1, 3, 5, 7, 9].includes(n)) ? "GREEN" : "RED");
-
-        // ---------------------------------------------------------------
-        // AI LAYER A: MICRO TREND SCANNER (Analyzing Latest 10 Results)
-        // ---------------------------------------------------------------
-        let microColorTrend = colorTrendMap.slice(0, 10);
-        
-        // A1. Micro Continuous Streak Handler (Dragon Tracker)
-        let microStreak = 1;
-        for (let i = 0; i < microColorTrend.length - 1; i++) {
-            if (microColorTrend[i] === microColorTrend[i + 1]) {
-                microStreak++;
-            } else {
-                break;
-            }
-        }
-        if (microStreak >= 2) {
-            if (microColorTrend[0] === "GREEN") greenWeight += (microStreak * 55);
-            else redWeight += (microStreak * 55);
-        }
-
-        // A2. Micro Alternate Jumper Mechanism (RGRG / GRGR Diagnostics)
-        let microAlternatingCount = 0;
-        for (let i = 0; i < microColorTrend.length - 1; i++) {
-            if (microColorTrend[i] !== microColorTrend[i + 1]) {
-                microAlternatingCount++;
-            } else {
-                break;
-            }
-        }
-        if (microAlternatingCount >= 2) {
-            // Adjust convergence path inversion weights
-            if (microColorTrend[0] === "GREEN") redWeight += (microAlternatingCount * 42);
-            else greenWeight += (microAlternatingCount * 42);
-        }
-
-        // A3. Micro Mirror Wave Detector (V-Shape Symmetry Evaluation)
-        if (microColorTrend.length >= 4) {
-            if (microColorTrend[0] === microColorTrend[3] && microColorTrend[1] === microColorTrend[2]) {
-                if (microColorTrend[0] === "GREEN") greenWeight += 35; else redWeight += 35;
-            }
-        }
-
-        // ---------------------------------------------------------------
-        // AI LAYER B: MACRO ANALYSIS LAYER (Full 50 Records Stored Core)
-        // ---------------------------------------------------------------
-        let macroGreenCount = colorTrendMap.filter(c => c === "GREEN").length;
-        let macroRedCount = colorTrendMap.length - macroGreenCount;
-        
-        // B1. Global Deviation Compensation Law
-        if (macroGreenCount !== macroRedCount) {
-            if (macroGreenCount < macroRedCount) {
-                greenWeight += 30; // Counter-balance weight configuration
-            } else {
-                redWeight += 30;
-            }
-        }
-
-        // B2. Historic Numerical Volatility Multiplier
-        let totalSumOfFifty = numericalStream.reduce((a, b) => a + b, 0);
-        if (totalSumOfFifty % 2 === 0) {
-            greenWeight += 12;
-        } else {
-            redWeight += 12;
-        }
-
-    } else {
-        // Safe default fallback loop if active streams are unreachable
-        if (periodSeedValue % 2 === 0) greenWeight += 20; else redWeight += 20;
-    }
-
-    // AI DECISION ROUTING PARSER
-    let chosenColorState = "GREEN";
-    if (greenWeight === redWeight) {
-        chosenColorState = (periodSeedValue % 3 === 0) ? "RED" : "GREEN";
-    } else {
-        chosenColorState = (greenWeight > redWeight) ? "GREEN" : "RED";
-    }
-
-    // DOUBLE DYNAMIC TARGET GENERATORS (One Small & One Big)
-    let finalSmallNumber = 0;
-    let finalBigNumber = 0;
-    
-    // Matrix distribution indexing logic sequence
-    let computationalShiftIndex = (periodSeedValue + fallbackReferenceNum + strictHistoryLog.length) % 13;
-
-    if (chosenColorState === "GREEN") {
-        finalSmallNumber = GREEN_SMALL_POOL[computationalShiftIndex % GREEN_SMALL_POOL.length];
-        finalBigNumber = GREEN_BIG_POOL[computationalShiftIndex % GREEN_BIG_POOL.length];
-    } else {
-        finalSmallNumber = RED_SMALL_POOL[computationalShiftIndex % RED_SMALL_POOL.length];
-        finalBigNumber = RED_BIG_POOL[computationalShiftIndex % RED_BIG_POOL.length];
-    }
-
-    // Structure parameters data securely for dashboard distribution pipelines
-    globalPrediction = {
-        period: upcomingPeriodStr,
-        color: chosenColorState,
-        numberSmall: finalSmallNumber,
-        numberBig: finalBigNumber,
-        timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
-    };
-
-    io.emit('predictionUpdate', globalPrediction);
-}
-
 async function updatePrediction() {
     try {
-        const response = await axios.get(GAME_API, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
-                'Accept': 'application/json, text/plain, */*',
-                'Connection': 'keep-alive'
-            },
-            timeout: 3500
-        });
-
-        if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
-            const incomingApiList = response.data.data.list;
+        // Step 1: API se current period number fetch karna
+        const response = await axios.get(GAME_API_ENDPOINT);
+        if (response.data && response.data.data && response.data.data.games) {
+            const latestGameFromApi = response.data.data.games[0];
+            const currentApiPeriodStr = latestGameFromApi.issueNumber; // e.g. "202606021001"
             
-            if (strictHistoryLog.length === 0) {
-                strictHistoryLog = incomingApiList.slice(0, 50);
-                saveToPermanentDatabase();
-            } else {
-                const latestIncomingRound = incomingApiList[0];
-                const existingLoggedRound = strictHistoryLog[0];
+            if (currentApiPeriodStr) {
+                // Step 2: 3-Minute ke baad aane wale upcoming target period ki calculation
+                // Hum last digits (sequence) ko extract karke usmein 3 rounds plus kar rahe hain
+                const basePeriodInt = BigInt(currentApiPeriodStr);
+                const upcoming3MinPeriodStr = (basePeriodInt + 3n).toString();
 
-                if (latestIncomingRound.issueNumber !== existingLoggedRound.issueNumber) {
-                    strictHistoryLog.unshift(latestIncomingRound);
+                // Step 3: Pure Online Server RNG Engine Logic execution
+                // Kisi external API result par depend nahi karega, pure random number generate hoga
+                const rngTargetNumber = Math.floor(Math.random() * 10);
+                
+                // YOUR EXCLUSIVE RULE: 0-4 = SMALL, 5-9 = BIG
+                let calculationResultString = "";
+                if (rngTargetNumber >= 0 && rngTargetNumber <= 4) {
+                    calculationResultString = "SMALL";
+                } else {
+                    calculationResultString = "BIG";
+                }
+
+                // UI Aesthetics aur UI breakdown se bachne ke liye dynamic colors allocation
+                let colorBadgeState = "GREEN";
+                if ([2, 4, 6, 8].includes(rngTargetNumber)) {
+                    colorBadgeState = "RED";
+                } else if ([1, 3, 7, 9].includes(rngTargetNumber)) {
+                    colorBadgeState = "GREEN";
+                } else if (rngTargetNumber === 0) {
+                    colorBadgeState = "RED-VIOLET";
+                } else if (rngTargetNumber === 5) {
+                    colorBadgeState = "GREEN-VIOLET";
+                }
+
+                // Step 4: UI format map payload update
+                globalPrediction = {
+                    period: upcoming3MinPeriodStr, // Yeh dashboard par 3-minute baad wala target period dikhayega
+                    color: colorBadgeState,
+                    numberSmall: rngTargetNumber, // Box me random number show karega
+                    numberBig: calculationResultString, // Box me exact BIG ya SMALL text string show karega
+                    timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
+                };
+
+                // Local logs database validation structure
+                const currentLogEntry = {
+                    issueNumber: upcoming3MinPeriodStr,
+                    number: rngTargetNumber,
+                    colour: colorBadgeState,
+                    size: calculationResultString
+                };
+
+                if (strictHistoryLog.length === 0 || strictHistoryLog[0].issueNumber !== upcoming3MinPeriodStr) {
+                    strictHistoryLog.unshift(currentLogEntry);
                     if (strictHistoryLog.length > 50) {
                         strictHistoryLog = strictHistoryLog.slice(0, 50);
                     }
-                    saveToPermanentDatabase(); 
+                    saveToPermanentDatabase();
                 }
-            }
 
-            let rawApiPeriodStr = strictHistoryLog[0].issueNumber.toString();
-            let safeUpcomingPeriod = calculateUpcomingPeriod(rawApiPeriodStr);
-            executePatternAnalysis(safeUpcomingPeriod);
-        } else {
-            executePatternAnalysis(calculateUpcomingPeriod(null));
+                // Socket nodes data transfer broadcast
+                io.emit('predictionUpdate', globalPrediction);
+            }
         }
-    } catch (networkError) {
-        executePatternAnalysis(calculateUpcomingPeriod(null));
+    } catch (error) {
+        console.log("[DETECTION ERROR] API core sync fallback active. Retrying channel connection...");
     }
 }
 
-setInterval(updatePrediction, 2000);
+// Har 2-5 seconds me background check algorithm trigger karna taaki period automatic accurately sync rahe
+setInterval(updatePrediction, 3000);
 updatePrediction();
 
 app.post('/api/admin/uid', (req, res) => {
@@ -290,4 +180,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[DETECTION CORE ONLINE] Server active on cluster port ${PORT}`));
+server.listen(PORT, () => console.log(`[CORE SYSTEM ONLINE] Running server smoothly on port ${PORT}`));
