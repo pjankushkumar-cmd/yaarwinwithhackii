@@ -37,7 +37,6 @@ function loadPermanentHistoryDatabase() {
             const parsedData = JSON.parse(rawData);
             if (Array.isArray(parsedData)) {
                 strictHistoryLog = parsedData.slice(0, 50);
-                console.log(`[MAIN NODE] Database sync successful: ${strictHistoryLog.length}`);
             }
         }
     } catch (err) {
@@ -59,21 +58,20 @@ loadPermanentHistoryDatabase();
 const GAME_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=50&gameId=1";
 
 let globalPrediction = { 
-    period: "Fetching Live API...", 
+    period: "Syncing Live...", 
     color: "WAIT", 
     numberSmall: "WAIT",
     numberBig: "WAIT", 
     timestamp: "00:00:00" 
 };
 
-// Pure String Mathematical Node logic to safely add 3 rounds to API issue number
+// Pure BigInt mathematical addition framework to advance exactly 3 minutes/periods securely
 function calculateUpcoming3MinPeriod(currentApiPeriodStr) {
     if (!currentApiPeriodStr) return "Syncing...";
     try {
         const basePeriodInt = BigInt(currentApiPeriodStr);
-        // Live API period number se exactly 3 rounds aage ka target coordinate karega
-        const upcoming3MinPeriodStr = (basePeriodInt + 3n).toString();
-        return upcoming3MinPeriodStr;
+        // User Rules: Current live period sequence se exactly 3 rounds aage ka track set karega
+        return (basePeriodInt + 3n).toString();
     } catch (e) {
         return currentApiPeriodStr;
     }
@@ -83,21 +81,21 @@ function calculateUpcoming3MinPeriod(currentApiPeriodStr) {
 // CUSTOM HIGH-SECURITY SERVER RNG PREDICTOR ENGINE
 // =======================================================================
 function generateRNGPrediction(upcomingPeriodStr) {
-    // 0 se 9 ke beech computer internally ek random number choose karega
+    // 0 se 9 ke beech pure digital random indicator algorithm selection
     const rngTargetNumber = Math.floor(Math.random() * 10);
     
-    // AAPKA RULES SYSTEM: 0-4 = SMALL, 5-9 = BIG
+    // EXCLUSIVE CUSTOM RULE: 0-4 = SMALL, 5-9 = BIG
     let ruleDecisionResult = "SMALL";
     if (rngTargetNumber >= 5 && rngTargetNumber <= 9) {
         ruleDecisionResult = "BIG";
     }
 
-    // Dashboard dynamic formats configuration mappings
+    // Assign text fields values directly to secure socket payload payload structure
     globalPrediction = {
         period: upcomingPeriodStr,
-        color: ruleDecisionResult,  // Dashboard par GREEN/RED ki jagah seedhe BIG/SMALL dikhega
-        numberSmall: "WAIT",       // Pattern A box clean text string format
-        numberBig: "WAIT",         // Pattern B box clean text string format
+        color: ruleDecisionResult,  // Main field: Green/Red ko replace karke seedhe BIG/SMALL banayega
+        numberSmall: "WAIT",       // Pattern A box content set to absolute clean state
+        numberBig: "WAIT",         // Pattern B box content set to absolute clean state
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
 
@@ -106,14 +104,14 @@ function generateRNGPrediction(upcomingPeriodStr) {
 
 async function fetchLiveGameDataFromApi() {
     try {
-        // High-quality headers lagaye hain taaki Render server block na ho
         const response = await axios.get(GAME_API, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'en-US,en;q=0.9',
                 'Connection': 'keep-alive'
             },
-            timeout: 5000
+            timeout: 4000
         });
 
         if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
@@ -128,25 +126,36 @@ async function fetchLiveGameDataFromApi() {
                 saveToPermanentDatabase(); 
             }
 
-            // API se live current issue number uthana
+            // Extract issue number dynamically
             let rawApiPeriodStr = latestIncomingRound.issueNumber.toString();
-            
-            // 3-minute structural sequence forward update trigger karna
             let safeUpcomingPeriod = calculateUpcoming3MinPeriod(rawApiPeriodStr);
             generateRNGPrediction(safeUpcomingPeriod);
+        } else {
+            // Fallback rule if data format shifts slightly inside payload
+            fallbackRNGExecution();
         }
     } catch (networkError) {
-        console.log("[DETECTION NOTICE] API Request delayed. Retrying tracking link safely...");
-        // Fallback protocol checks local storage tracking logs if network times out
-        if(strictHistoryLog.length > 0) {
-            let lastSavedPeriod = strictHistoryLog[0].issueNumber.toString();
-            generateRNGPrediction(calculateUpcoming3MinPeriod(lastSavedPeriod));
-        }
+        fallbackRNGExecution();
     }
 }
 
-// Render server limits aur API blocking se bachne ke liye safe interval (15 Seconds) loop set kiya hai
-setInterval(fetchLiveGameDataFromApi, 15000);
+function fallbackRNGExecution() {
+    if(strictHistoryLog.length > 0 && strictHistoryLog[0].issueNumber) {
+        let lastSavedPeriod = strictHistoryLog[0].issueNumber.toString();
+        generateRNGPrediction(calculateUpcoming3MinPeriod(lastSavedPeriod));
+    } else {
+        // Absolute fail-safe wall-clock computation if API blocks completely
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
+        const seq = Math.floor((now.getHours() * 60 + now.getMinutes()) / 3) + 1;
+        generateRNGPrediction(`${year}${month}${day}${seq.toString().padStart(4, '0')}`);
+    }
+}
+
+// Fast check synchronization loop (Every 2 seconds background refresh)
+setInterval(fetchLiveGameDataFromApi, 2000);
 fetchLiveGameDataFromApi();
 
 app.post('/api/admin/uid', (req, res) => {
@@ -184,4 +193,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[CORE EXCLUSIVE ONLINE] Mainframe active on port ${PORT}`));
+server.listen(PORT, () => console.log(`[SYSTEM ONLINE] Mainframe live on port ${PORT}`));
