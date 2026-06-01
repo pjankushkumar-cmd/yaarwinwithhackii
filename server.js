@@ -55,21 +55,22 @@ loadPermanentHistoryDatabase();
 
 let lastProcessedMinuteIndex = -1; 
 let currentLockedPrediction = { 
-    period: "1318", 
+    period: "1321", 
     color: "WAIT", 
     predictNumberSmall: "WAITING",  
-    predictNumberBig: "WAITING"     
+    predictNumberBig: "WAITING",
+    numberSmall: "WAITING",
+    numberBig: "WAITING"
 };
 
-// Helper function to generate two random numbers based on BIG/SMALL rule
+// Helper function to generate two distinct random numbers based on BIG/SMALL rule
 function generateTwoNumbers(size) {
     let pool = [];
     if (size === "SMALL") {
-        pool = [0, 1, 2, 3, 4];
+        pool = [0, 1, 2, 3, 4]; // Small Pool Numbers
     } else {
-        pool = [5, 6, 7, 8, 9];
+        pool = [5, 6, 7, 8, 9]; // Big Pool Numbers
     }
-    // Shuffle pool to get two unique random numbers
     let shuffled = pool.sort(() => 0.5 - Math.random());
     return {
         num1: shuffled[0].toString(),
@@ -78,7 +79,7 @@ function generateTwoNumbers(size) {
 }
 
 // =======================================================================
-// EXACT 5:30 AM RESET -> 24-HOUR CONTINUOUS MATHEMATICAL ENGINE
+// EXACT 5:30 AM RESET -> 24-HOUR CONTINUOUS MATHEMATICAL LOGIC
 // =======================================================================
 function executePerfectGameCycle() {
     const now = new Date();
@@ -86,44 +87,45 @@ function executePerfectGameCycle() {
     // Total minutes passed since midnight 12:00 AM (IST Sync)
     const totalMinutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
     
-    // 5:30 AM Reset Point = 330 Minutes
+    // AAPKA RULES MATRIX: 5:30 AM Shift point calculation (330 Minutes)
     const resetTimeMinutes = 330;
     let diffMinutes = totalMinutesSinceMidnight - resetTimeMinutes;
     
-    // Handle cross-over from midnight to 5:30 AM to keep continuity
+    // Midnight se 5:30 AM ke beech ki timeline ko roll-over handle karna
     if (diffMinutes < 0) {
         diffMinutes = (24 * 60) + diffMinutes; 
     }
 
-    // Har minute period 1 se aage badhega (5:30 AM = 0001, 3:27 AM = 1318)
+    // Har ek minute par automatic sequence +1 badhegi
+    // Example: Subah 5:30 AM = 0001, Agle din 3:30 AM = 1321 (Absolute Perfect Math!)
     const currentPeriodNumber = Math.floor(diffMinutes / 1) + 1;
     const formattedPeriodDisplay = currentPeriodNumber.toString().padStart(4, '0');
 
-    // System changes output ONLY when the real clock minute changes
+    // Server updates only when the real clock minute increments
     if (currentPeriodNumber !== lastProcessedMinuteIndex) {
         lastProcessedMinuteIndex = currentPeriodNumber;
 
-        // SKIP LOGIC: Har 3rd period par result khulega, baaki do par WAIT/WAITING rahega
+        // SKIP LOOP RULE: Har 3rd period par naya result open hoga
         if (currentPeriodNumber % 3 === 1) {
             
-            // Server-side safe RNG (0-9)
             const rngTargetNumber = Math.floor(Math.random() * 10);
             
-            // 0-4 = SMALL, 5-9 = BIG
             let ruleDecisionResult = "SMALL";
             if (rngTargetNumber >= 5 && rngTargetNumber <= 9) {
                 ruleDecisionResult = "BIG";
             }
 
-            // Generate 2 random numbers according to BIG or SMALL result
+            // Pool se do exact numbers nikalna
             const pair = generateTwoNumbers(ruleDecisionResult);
 
-            // FRONTEND FIXED: Map numbers into predictNumberSmall (Pattern A) and predictNumberBig (Pattern B)
+            // DOUBLE VARIABLE MAPPING: Dono type ke frontend template keys ko pass kiya hai
             currentLockedPrediction = {
                 period: formattedPeriodDisplay,
                 color: ruleDecisionResult,
-                predictNumberSmall: pair.num1, // Shows Number 1
-                predictNumberBig: pair.num2    // Shows Number 2
+                predictNumberSmall: pair.num1, // Target Output 1
+                predictNumberBig: pair.num2,   // Target Output 2
+                numberSmall: pair.num1,        // Backup map key
+                numberBig: pair.num2           // Backup map key
             };
 
             const currentLogEntry = {
@@ -137,23 +139,25 @@ function executePerfectGameCycle() {
             saveToPermanentDatabase();
 
         } else {
-            // Beech ke do periods par status automatic WAIT ho jayega aur boxes mein WAITING dikhega
+            // Beech ke baaki do rounds par automatic "WAIT" aur "WAITING" set rahega
             currentLockedPrediction = {
                 period: formattedPeriodDisplay,
                 color: "WAIT",
                 predictNumberSmall: "WAITING", 
-                predictNumberBig: "WAITING"   
+                predictNumberBig: "WAITING",
+                numberSmall: "WAITING",
+                numberBig: "WAITING"
             };
         }
 
         io.emit('predictionUpdate', currentLockedPrediction);
     } else {
-        // Keeps the state locked so it doesn't change every second
+        // Keeps values strictly frozen for 60 seconds to prevent rapid flashing
         io.emit('predictionUpdate', currentLockedPrediction);
     }
 }
 
-// Heartbeat interval running every 1 second
+// Background precision scanner running every 1 second
 setInterval(executePerfectGameCycle, 1000);
 executePerfectGameCycle();
 
@@ -192,4 +196,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[MATHEMATICAL ENGINE ACTIVE] Deployed perfectly on port ${PORT}`));
+server.listen(PORT, () => console.log(`[SYSTEM TIMELINE SYNCHRONIZED] App live on port ${PORT}`));
