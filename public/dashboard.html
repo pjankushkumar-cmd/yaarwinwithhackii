@@ -163,9 +163,17 @@
                 // Period display showing only filtered 4 digits sequence safely
                 document.getElementById('periodId').innerHTML = `Period: <span style="color:var(--neon-cyan); font-weight:800; font-size:24px;">${data.period}</span>`;
                 
-                // Boxes stay perfectly formatted as permanent WAIT text 
-                document.getElementById('predictNumberSmall').innerText = "WAIT";
-                document.getElementById('predictNumberBig').innerText = "WAIT";
+                // FIXED: Numbers will now correctly display when color is BIG or SMALL
+                if(data.color === "BIG" || data.color === "SMALL") {
+                    document.getElementById('predictNumberSmall').innerText =
+                        data.numberSmall || data.predictNumberSmall || "WAIT";
+
+                    document.getElementById('predictNumberBig').innerText =
+                        data.numberBig || data.predictNumberBig || "WAIT";
+                } else {
+                    document.getElementById('predictNumberSmall').innerText = "WAIT";
+                    document.getElementById('predictNumberBig').innerText = "WAIT";
+                }
                 
                 let clrElement = document.getElementById('colorResult');
                 
