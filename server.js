@@ -39,7 +39,7 @@ function loadPermanentHistoryDatabase() {
             }
         }
     } catch (err) {
-        console.log("[SYSTEM] Database initialized successfully.");
+        console.log("[SYSTEM] Local memory storage synced.");
     }
 }
 
@@ -47,74 +47,68 @@ function saveToPermanentDatabase() {
     try {
         fs.writeFileSync(DB_FILE_PATH, JSON.stringify(strictHistoryLog, null, 2), 'utf8');
     } catch (err) {
-        console.log("[SYSTEM] Database saving issue:", err);
+        console.log("[SYSTEM] Database write error:", err);
     }
 }
 
 loadPermanentHistoryDatabase();
 
-let lastProcessed1MinIndex = -1; 
+let lastProcessedMinuteIndex = -1; 
 let currentLockedPrediction = { 
     period: "0001", 
-    color: "WAIT", 
-    numberSmall: "WAIT",
-    numberBig: "WAIT"
+    color: "BIG", 
+    numberSmall: "WAITING",
+    numberBig: "WAITING"
 };
 
 // =======================================================================
-// TIMELINE ENGINE: 5:30 AM RESET + 3-PERIOD SKIP SEQUENCE STEPPER
+// DYNAMIC 5:30 AM RESET + 1-MIN PERIOD TRACKER + 3-MIN SKIP WAIT LOGIC
 // =======================================================================
-function executeStrictSkipTimeline() {
+function executePerfectGameCycle() {
     const now = new Date();
     
-    // Total minutes passed today in system time (IST Sync)
+    // Total minutes passed today in system clock (IST Standard)
     const totalMinutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
     
-    // 5:30 AM Shift Reset Point (5 * 60 + 30 = 330 Minutes)
+    // SUBHA 5:30 AM RESET RULE (5 * 60 + 30 = 330 Minutes)
     const resetTimeMinutes = 330; 
     let diffMinutes = totalMinutesSinceMidnight - resetTimeMinutes;
     
+    // Reset frame calculation logic if time is between midnight and 5:30 AM
     if (diffMinutes < 0) {
         diffMinutes = (24 * 60) + diffMinutes; 
     }
 
-    // Current 1-minute sequence base index
-    const current1MinIndex = Math.floor(diffMinutes / 1) + 1;
+    // 1. HAR MINUTE PERIOD NUMBER BADLEGA (Continuous 1-Min Counter)
+    // 5:30 AM exact par base index 0 hoga (yaani period 0000), 5:31 par 0001...
+    const currentPeriodNumber = Math.floor(diffMinutes / 1);
+    const formattedPeriodDisplay = currentPeriodNumber.toString().padStart(4, '0');
 
-    // AAPKA EXCLUSIVE SKIP RULE:
-    // Har 3rd block par ek fix calculation step banta hai, baaki 2 targets skip ho jaate hain.
-    // Index base grouping sequence find karna
-    const currentGroupSequence = Math.floor((current1MinIndex - 1) / 3);
-    
-    // Target active period tracking index calculate karna: (Group * 3) + 1
-    const activeTargetPeriodId = (currentGroupSequence * 3) + 1;
-    
-    // Convert directly to standard last 4 digits text (e.g. 0001 -> 0004 -> 0007...)
-    const formattedPeriodDisplay = activeTargetPeriodId.toString().padStart(4, '0');
+    // 2. TRUE 3-MINUTE PATTERN & WAIT SKIP SCHEDULER
+    if (currentPeriodNumber !== lastProcessedMinuteIndex) {
+        lastProcessedMinuteIndex = currentPeriodNumber;
 
-    // Execute state push only when a true 1-minute tick rolls forward
-    if (current1MinIndex !== lastProcessed1MinIndex) {
-        lastProcessed1MinIndex = current1MinIndex;
+        // Check if this specific minute is the 3rd interval match
+        // Rule: Agar (Period % 3 === 1) hai toh real result open hoga, baki dono par WAIT dikhega!
+        if (currentPeriodNumber % 3 === 1) {
+            
+            // Server side secure mathematical RNG generation (0 to 9)
+            const rngTargetNumber = Math.floor(Math.random() * 10);
+            
+            // AAPKA RULE: 0-4 = SMALL, 5-9 = BIG
+            let ruleDecisionResult = "SMALL";
+            if (rngTargetNumber >= 5 && rngTargetNumber <= 9) {
+                ruleDecisionResult = "BIG";
+            }
 
-        // RNG runs only once when a new group block sets up
-        const rngTargetNumber = Math.floor(Math.random() * 10);
-        
-        // MAPPING RULE: 0-4 = SMALL, 5-9 = BIG
-        let ruleDecisionResult = "SMALL";
-        if (rngTargetNumber >= 5 && rngTargetNumber <= 9) {
-            ruleDecisionResult = "BIG";
-        }
+            currentLockedPrediction = {
+                period: formattedPeriodDisplay,       // Active sequential period number
+                color: ruleDecisionResult,           // Displays generated result: BIG / SMALL
+                numberSmall: "WAITING",              // Custom template formatting text boxes
+                numberBig: "WAITING"
+            };
 
-        // Broadcaster packet structure updates seamlessly
-        currentLockedPrediction = {
-            period: formattedPeriodDisplay,   // Shows 0001, skips 0002 & 0003, then jumps straight to 0004
-            color: ruleDecisionResult,        // Big or Small locked value
-            numberSmall: "WAIT",             // Pattern A box displaying standard wait text
-            numberBig: "WAIT"                // Pattern B box displaying standard wait text
-        };
-
-        // Maintain log database sync only for genuine active changes
-        if ((current1MinIndex - 1) % 3 === 0) {
+            // Maintain log inside JSON database
             const currentLogEntry = {
                 issueNumber: formattedPeriodDisplay,
                 number: rngTargetNumber,
@@ -124,18 +118,27 @@ function executeStrictSkipTimeline() {
             strictHistoryLog.unshift(currentLogEntry);
             if (strictHistoryLog.length > 50) strictHistoryLog = strictHistoryLog.slice(0, 50);
             saveToPermanentDatabase();
+
+        } else {
+            // AAPKA SKIP RULE: Beech wale do rounds par automatic "WAIT" flash hoga screen par!
+            currentLockedPrediction = {
+                period: formattedPeriodDisplay,       // Period updates smoothly every minute
+                color: "WAIT",                        // Main title updates into WAIT instruction status
+                numberSmall: "WAITING",               // Sub boxes show steady waiting status text
+                numberBig: "WAITING"
+            };
         }
 
         io.emit('predictionUpdate', currentLockedPrediction);
     } else {
-        // Keeps state completely frozen during intermediate minute loops
+        // Safe lock maintenance broadcast signal
         io.emit('predictionUpdate', currentLockedPrediction);
     }
 }
 
-// Background core heartbeat system running validation smoothly every 1 second
-setInterval(executeStrictSkipTimeline, 1000);
-executeStrictSkipTimeline();
+// Background engine running precise validation checks every 1 second
+setInterval(executePerfectGameCycle, 1000);
+executePerfectGameCycle();
 
 app.post('/api/admin/uid', (req, res) => {
     const { token, uid, action, duration } = req.body;
@@ -157,12 +160,12 @@ app.get('/api/admin/uids', (req, res) => {
 
 app.post('/api/user/verify', (req, res) => {
     const { uid } = req.body;
-    if (!uid) return res.json({ status: 'invalid', message: 'Credentials parameter value missing.' });
+    if (!uid) return res.json({ status: 'invalid', message: 'Credentials parameter values missing.' });
     const match = uids[uid];
     if (!match) return res.json({ status: 'pending', message: 'Verification status: PENDING!' });
     if (Date.now() > match.expiry) {
         delete uids[uid];
-        return res.json({ status: 'expired', message: 'Active session timing window elapsed!' });
+        return res.json({ status: 'expired', message: 'Active session timing has closed!' });
     }
     res.json({ status: 'approved' });
 });
@@ -172,4 +175,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[SKIP-INTERVAL ENGINE SYSTEM ONLINE] Deployed on port ${PORT}`));
+server.listen(PORT, () => console.log(`[PERFECT 5:30AM LOOP TIMELINE ONLINE] Active Port: ${PORT}`));
