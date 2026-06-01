@@ -136,33 +136,44 @@
         }
         setInterval(verifyNodeLoop, 5000);
 
-        function runLocalCountdown() {
+        // REAL 3-MINUTE SYNCHRONIZED COUNTDOWN CLOCK
+        function run3MinClockCountdown() {
             setInterval(() => {
                 const now = new Date();
-                const seconds = now.getSeconds();
-                const remainingSeconds = 60 - seconds;
-                let displaySec = remainingSeconds < 10 ? "0" + remainingSeconds : remainingSeconds;
-                document.getElementById('timerDisplay').innerText = `⏳ NEXT HORIZON REFRESH: 00:${displaySec}s`;
+                const totalSecondsInCurrentHour = (now.getMinutes() * 60) + now.getSeconds();
+                
+                // Pure 3 minutes block validation (3 * 60 = 180 Seconds)
+                const currentBlockPassedSeconds = totalSecondsInCurrentHour % 180;
+                const remainingSecondsInBlock = 180 - currentBlockPassedSeconds;
+                
+                const displayMinutes = Math.floor(remainingSecondsInBlock / 60);
+                const displaySeconds = remainingSecondsInBlock % 60;
+                
+                const finalMinStr = displayMinutes.toString().padStart(2, '0');
+                const finalSecStr = displaySeconds.toString().padStart(2, '0');
+                
+                document.getElementById('timerDisplay').innerText = `⏳ NEXT HORIZON REFRESH: ${finalMinStr}:${finalSecStr}s`;
             }, 1000);
         }
-        runLocalCountdown();
+        run3MinClockCountdown();
 
         const socket = io();
         socket.on('predictionUpdate', (data) => {
             if(data && data.period) {
+                // Period display showing only filtered 4 digits sequence safely
                 document.getElementById('periodId').innerHTML = `Period: <span style="color:var(--neon-cyan); font-weight:800; font-size:24px;">${data.period}</span>`;
                 
-                // Clear 0 and Small from Pattern A / B, set it to show WAIT
+                // Boxes stay perfectly formatted as permanent WAIT text 
                 document.getElementById('predictNumberSmall').innerText = "WAIT";
                 document.getElementById('predictNumberBig').innerText = "WAIT";
                 
                 let clrElement = document.getElementById('colorResult');
                 
                 if(data.color === "BIG") {
-                    clrElement.style.color = "var(--neon-green)"; // Big styling neon green
+                    clrElement.style.color = "var(--neon-green)"; // Neon green structure layout
                     clrElement.innerText = "BIG";
                 } else if(data.color === "SMALL") {
-                    clrElement.style.color = "var(--neon-pink)";  // Small styling neon pink
+                    clrElement.style.color = "var(--neon-pink)";  // Neon pink structure layout
                     clrElement.innerText = "SMALL";
                 } else {
                     clrElement.style.color = "#ffffff";
