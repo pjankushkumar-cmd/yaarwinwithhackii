@@ -45,17 +45,18 @@
             border: 1px solid rgba(0, 229, 255, 0.4);
             color: #fff;
             padding: 10px 0;
-            width: 90px;
+            width: 95px;
             border-radius: 14px;
             box-shadow: 0 0 25px rgba(0, 229, 255, 0.3);
             text-align: center;
         }
         .num-main-val {
-            font-size: 26px; /* Optimized font length validation for string parameters */
+            font-size: 24px;
             font-weight: 900;
-            font-family: monospace;
+            font-family: 'Segoe UI', sans-serif;
             display: block;
             text-shadow: 0 0 10px #fff;
+            letter-spacing: 0.5px;
         }
         .num-sub-lbl {
             font-size: 10px;
@@ -64,7 +65,7 @@
             text-transform: uppercase;
         }
         .color-badge {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 900;
             letter-spacing: 2px;
             text-shadow: 0 0 20px rgba(255,255,255,0.25);
@@ -83,26 +84,26 @@
             <p style="font-size: 12px; margin: 0; color: #b3b3b3;">Terminal Node: <span id="myUidDisplay" style="color:var(--neon-cyan); font-weight:700; font-family: monospace;">-</span></p>
         </div>
 
-        <div class="timer-box" id="timerDisplay">⏳ NEXT ROUND TIME: 00:00s</div>
+        <div class="timer-box" id="timerDisplay">⏳ NEXT HORIZON REFRESH: 00:00s</div>
 
         <div class="prediction-box">
             <h3 style="margin: 0 0 18px 0; font-size: 11px; color:var(--neon-pink); letter-spacing: 3px; font-weight: 800;">⚡ HIGH-LEVEL CORE PREDICTOR ⚡</h3>
-            <h2 id="periodId" style="font-size: 25px; margin: 5px 0; color: #fff; font-family: monospace;">Period: <span style="color: var(--neon-cyan); letter-spacing: 1px;">----</span></h2>
+            <h2 id="periodId" style="font-size: 24px; margin: 5px 0; color: #fff; font-family: monospace;">Period: <span style="color: var(--neon-cyan); letter-spacing: 1px;">----</span></h2>
             
             <hr style="border:0; border-top: 1px solid rgba(255,255,255,0.08); margin: 22px 0;">
 
-            <div style="font-size: 14px; margin-bottom: 6px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">Target Prediction Node</div>
+            <div style="font-size: 14px; margin-bottom: 6px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">Upcoming Target Node</div>
             <div id="colorResult" class="color-badge" style="margin-bottom: 25px;">-</div>
 
             <div style="font-size: 14px; margin-bottom: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">Optimal Target Outputs</div>
             
             <div class="numbers-container">
                 <div class="num-block">
-                    <span id="predictNumberSmall" class="num-main-val">-</span>
+                    <span id="predictNumberSmall" class="num-main-val">WAIT</span>
                     <span class="num-sub-lbl">Pattern A</span>
                 </div>
                 <div class="num-block">
-                    <span id="predictNumberBig" class="num-main-val">-</span>
+                    <span id="predictNumberBig" class="num-main-val">WAIT</span>
                     <span class="num-sub-lbl">Pattern B</span>
                 </div>
             </div>
@@ -149,20 +150,19 @@
         const socket = io();
         socket.on('predictionUpdate', (data) => {
             if(data && data.period) {
-                document.getElementById('periodId').innerHTML = `Period: <span style="color:var(--neon-cyan); font-weight:800; font-size:26px;">${data.period}</span>`;
+                document.getElementById('periodId').innerHTML = `Period: <span style="color:var(--neon-cyan); font-weight:800; font-size:24px;">${data.period}</span>`;
                 
-                // Dono bottom blocks par direct default value string map ho jayegi
-                document.getElementById('predictNumberSmall').innerText = data.numberSmall !== undefined ? data.numberSmall : "WAIT";
-                document.getElementById('predictNumberBig').innerText = data.numberBig !== undefined ? data.numberBig : "WAIT";
+                // Clear 0 and Small from Pattern A / B, set it to show WAIT
+                document.getElementById('predictNumberSmall').innerText = "WAIT";
+                document.getElementById('predictNumberBig').innerText = "WAIT";
                 
                 let clrElement = document.getElementById('colorResult');
                 
-                // Color parameters text conversion algorithms to match Big / Small text tags
                 if(data.color === "BIG") {
-                    clrElement.style.color = "var(--neon-green)"; // Big ke liye Green aesthetic color layout
+                    clrElement.style.color = "var(--neon-green)"; // Big styling neon green
                     clrElement.innerText = "BIG";
                 } else if(data.color === "SMALL") {
-                    clrElement.style.color = "var(--neon-pink)";  // Small ke liye Pink/Red neon shade layout
+                    clrElement.style.color = "var(--neon-pink)";  // Small styling neon pink
                     clrElement.innerText = "SMALL";
                 } else {
                     clrElement.style.color = "#ffffff";
