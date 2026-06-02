@@ -1,235 +1,241 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const axios = require('axios');
-const path = require('path');
-const fs = require('fs');
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-const ADMIN_SECRET_TOKEN = "OWNER_SECRET_KEY_9988";
-
-app.get('/admin.html', (req, res) => {
-    const token = req.query.token;
-    if (token !== ADMIN_SECRET_TOKEN) {
-        return res.status(403).send('<h1>403 Forbidden: Root Admin Identity Verification Failed!</h1>');
-    }
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
-let uids = {}; 
-let strictHistoryLog = []; 
-const DB_FILE_PATH = path.join(__dirname, 'history_database.json');
-
-function loadPermanentHistoryDatabase() {
-    try {
-        if (fs.existsSync(DB_FILE_PATH)) {
-            const rawData = fs.readFileSync(DB_FILE_PATH, 'utf8');
-            const parsedData = JSON.parse(rawData);
-            if (Array.isArray(parsedData)) {
-                strictHistoryLog = parsedData.slice(0, 50);
-                console.log(`[MAIN NODE] Syncing system configurations: ${strictHistoryLog.length}`);
-            }
-        }
-    } catch (err) {
-        console.log("[MAIN NODE] Local telemetry stack initialized successfully.");
-    }
-}
-
-function saveToPermanentDatabase() {
-    try {
-        fs.writeFileSync(DB_FILE_PATH, JSON.stringify(strictHistoryLog, null, 2), 'utf8');
-    } catch (err) {
-        console.log("[MAIN NODE] Telemetry cache persistence layer error:", err);
-    }
-}
-
-loadPermanentHistoryDatabase();
-
-function getCurrentWallclockPeriod() {
-    const now = new Date();
-    const totalMinutes = now.getHours() * 60 + now.getMinutes();
-    return totalMinutes.toString().padStart(4, '0');
-}
-
-let globalPrediction = { 
-    period: getCurrentWallclockPeriod(), 
-    topNumbers: [
-        { num: 9, chance: 99 },
-        { num: 9, chance: 89 },
-        { num: 5, chance: 50 }
-    ],
-    timestamp: "00:00:00" 
-};
-
-const GAME_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=50&gameId=1";
-
-function calculateUpcomingPeriod(currentApiPeriodStr) {
-    let targetFourDigits = "";
-    if (currentApiPeriodStr && currentApiPeriodStr.length >= 4) {
-        targetFourDigits = currentApiPeriodStr.slice(-4);
-    } else {
-        targetFourDigits = getCurrentWallclockPeriod();
-    }
-    let incrementedValue = parseInt(targetFourDigits) + 1;
-    if (incrementedValue > 9999) { incrementedValue = 0; }
-    return incrementedValue.toString().padStart(4, '0');
-}
-
-// =======================================================================
-// FULL TREND ANALYSIS ALGORITHM (NO FORCED UNIQUE CONTROLS)
-// =======================================================================
-function executePatternAnalysis(upcomingPeriodStr) {
-    let periodSeedValue = parseInt(upcomingPeriodStr) || 0;
-    
-    // Array slots inside score vectors mapping specific positions
-    let targetOneNum = 0;
-    let targetTwoNum = 0;
-    let targetThreeNum = 0;
-
-    if (strictHistoryLog && strictHistoryLog.length > 0) {
-        let structuralHistory = strictHistoryLog.slice(0, 50);
-        let numericalStream = structuralHistory.map(g => parseInt(g.number || 0));
-
-        let lastNum = numericalStream[0];
-        let secondLastNum = numericalStream[1] !== undefined ? numericalStream[1] : 5;
-        let thirdLastNum = numericalStream[2] !== undefined ? numericalStream[2] : 3;
-
-        // HIGH LEVEL MATRIX SELECTION BASED ON DEEP RECENT TREND POINTERS
-        targetOneNum = (lastNum + (periodSeedValue % 3)) % 10;
-        targetTwoNum = Math.abs(secondLastNum - (periodSeedValue % 2)) % 10;
-        targetThreeNum = (thirdLastNum + 5) % 10;
-
-        // Custom weight modifiers according to overall frequency trends over 50 rounds
-        let frequencyMap = Array(10).fill(0);
-        numericalStream.forEach(n => { if(n >= 0 && n <= 9) frequencyMap[n]++; });
-
-        // Hot numbers validation overrides if trend demands it
-        if(frequencyMap[lastNum] > 8) {
-            targetTwoNum = lastNum; // Trend strongly indicates duplicate occurrence
-        }
-        if(frequencyMap[secondLastNum] > 10) {
-            targetOneNum = secondLastNum;
-            targetThreeNum = secondLastNum; // Trend matching dictates complete multi-stack replication
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yaar Win with Hackii - Professional Red Command Panel</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        :root {
+            --bg-main: #060002;
+            --bg-gradient: radial-gradient(circle at center, #1f0107 0%, #030001 100%);
+            --card-bg: rgba(18, 2, 6, 0.93);
+            --neon-red-primary: #ff0033;
+            --neon-glow: #ff2b56;
+            --dark-border: rgba(255, 0, 51, 0.35);
+            --text-main: #ffffff;
+            --text-sub: #cccccc;
         }
 
-    } else {
-        // High level pure algorithmic mathematical default mapping
-        targetOneNum = (periodSeedValue * 7) % 10;
-        targetTwoNum = (periodSeedValue * 3) % 10;
-        targetThreeNum = (periodSeedValue + 5) % 10;
-    }
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            font-family: 'Courier New', Courier, monospace, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
 
-    // Fixed High-Accuracy Level Probability Ranges requested by user
-    let percentageOne = 91 + (periodSeedValue % 9);       // 91% to 99%
-    let percentageTwo = 81 + ((periodSeedValue + 3) % 9); // 81% to 89%
-    let percentageThree = 45 + ((periodSeedValue + 6) % 11); // 45% to 55%
+        .container {
+            max-width: 440px;
+            width: 92%;
+            margin: 20px auto;
+            background: var(--card-bg);
+            padding: 35px 24px;
+            border-radius: 20px;
+            box-shadow: 0 0 60px rgba(255, 0, 51, 0.2), inset 0 0 15px rgba(255, 0, 51, 0.08);
+            border: 1px solid var(--dark-border);
+            backdrop-filter: blur(20px);
+            box-sizing: border-box;
+            text-align: center;
+        }
 
-    // Edge case limits safety check for presentation parameters
-    if(percentageOne > 99) percentageOne = 99;
-    if(percentageTwo > 89) percentageTwo = 89;
-    if(percentageThree > 55) percentageThree = 50;
+        .hack-title {
+            font-size: 36px;
+            font-weight: 900;
+            margin: 5px 0;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
 
-    globalPrediction = {
-        period: upcomingPeriodStr,
-        topNumbers: [
-            { num: targetOneNum, chance: percentageOne },
-            { num: targetTwoNum, chance: percentageTwo },
-            { num: targetThreeNum, chance: percentageThree }
-        ],
-        timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
-    };
+        .sub-title {
+            font-size: 12px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            color: var(--text-sub);
+            font-weight: bold;
+        }
 
-    io.emit('predictionUpdate', globalPrediction);
-}
+        .timer-box {
+            font-size: 16px;
+            color: #ffffff;
+            margin: 15px 0;
+            text-shadow: 0 0 12px var(--neon-red-primary);
+            font-weight: 700;
+            background: rgba(10, 0, 2, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px dashed var(--neon-red-primary);
+            letter-spacing: 1px;
+        }
 
-async function updatePrediction() {
-    try {
-        const response = await axios.get(GAME_API, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
-                'Accept': 'application/json, text/plain, */*',
-                'Connection': 'keep-alive'
-            },
-            timeout: 3500
-        });
+        .blinking-dot {
+            width: 9px;
+            height: 9px;
+            background-color: var(--neon-red-primary);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: blink-node 1.4s infinite;
+            box-shadow: 0 0 14px var(--neon-red-primary);
+        }
 
-        if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
-            const incomingApiList = response.data.data.list;
+        @keyframes blink-node {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+
+        .prediction-box {
+            background: rgba(5, 0, 1, 0.95);
+            border: 1px solid rgba(255, 0, 51, 0.3);
+            padding: 28px 20px;
+            margin: 25px 0;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.9);
+        }
+
+        .numbers-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .num-block {
+            background: linear-gradient(135deg, rgba(255, 0, 51, 0.18), rgba(20, 0, 3, 0.7));
+            border: 1px solid rgba(255, 0, 51, 0.5);
+            color: #ffffff;
+            padding: 20px 0;
+            width: 115px;
+            border-radius: 12px;
+            box-shadow: 0 0 22px rgba(255, 0, 51, 0.3);
+            text-align: center;
+        }
+
+        .num-main-val {
+            font-size: 48px;
+            font-weight: 900;
+            font-family: monospace;
+            display: block;
+            text-shadow: 0 0 15px var(--neon-red-primary);
+            margin-bottom: 4px;
+        }
+
+        .num-sub-lbl {
+            font-size: 14px;
+            letter-spacing: 1px;
+            color: var(--neon-glow);
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="hack-title" style="color: var(--neon-red-primary); text-shadow: 0 0 30px rgba(255,0,51,0.85);">HACKII</h1>
+        <h2 class="sub-title">CORE TREND TERMINAL</h2>
+        
+        <div style="background: rgba(0,0,0,0.7); padding: 14px; border-radius: 10px; margin-bottom: 25px; border: 1px solid rgba(255,0,51,0.2); text-align: left; display: flex; flex-direction: column; gap: 6px;">
+            <p style="font-size: 12px; margin: 0; color: #e6e6e6;">
+                <span class="blinking-dot"></span> PATTERN MONITOR: <span style="color:var(--neon-red-primary); font-weight:700; id='statusText'">SYNCHRONIZED</span>
+            </p>
+            <p style="font-size: 12px; margin: 0; color: #b3b3b3;">SYSTEM NODE ACCESS UID: <span id="myUidDisplay" style="color:var(--neon-glow); font-weight:700;">-</span></p>
+        </div>
+
+        <div class="timer-box" id="timerDisplay">⏳ NEXT HORIZON REFRESH: 00:00s</div>
+
+        <div class="prediction-box">
+            <h3 style="margin: 0 0 20px 0; font-size: 12px; color: var(--neon-red-primary); letter-spacing: 3px; font-weight: 800;">⚡ DYNAMIC TREND ANALYSIS DETECT ⚡</h3>
+            <h2 id="periodId" style="font-size: 26px; margin: 5px 0; color: #fff; font-family: monospace;">Period: <span style="color: var(--neon-glow); letter-spacing: 1px;">----</span></h2>
             
-            if (strictHistoryLog.length === 0) {
-                strictHistoryLog = incomingApiList.slice(0, 50);
-                saveToPermanentDatabase();
-            } else {
-                const latestIncomingRound = incomingApiList[0];
-                const existingLoggedRound = strictHistoryLog[0];
+            <hr style="border:0; border-top: 1px solid rgba(255,0,51,0.25); margin: 25px 0;">
 
-                if (latestIncomingRound.issueNumber !== existingLoggedRound.issueNumber) {
-                    strictHistoryLog.unshift(latestIncomingRound);
-                    if (strictHistoryLog.length > 50) {
-                        strictHistoryLog = strictHistoryLog.slice(0, 50);
-                    }
-                    saveToPermanentDatabase(); 
+            <div style="font-size: 12px; margin-bottom: 15px; color: #bbb; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">TOP OPTIMAL TARGET CHANCES</div>
+            
+            <div class="numbers-container">
+                <div class="num-block">
+                    <span id="num1" class="num-main-val">-</span>
+                    <span id="chance1" class="num-sub-lbl">0%</span>
+                </div>
+                <div class="num-block">
+                    <span id="num2" class="num-main-val">-</span>
+                    <span id="chance2" class="num-sub-lbl">0%</span>
+                </div>
+                <div class="num-block">
+                    <span id="num3" class="num-main-val">-</span>
+                    <span id="chance3" class="num-sub-lbl">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="font-size:11px; color:#888; margin-top:25px; line-height: 1.6; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,0,51,0.2);">
+            ⚠️ <strong>Secure System Rule:</strong> Numbers calculated dynamically from 50 saved matrix blocks. No arbitrary filters applied. Trust pure trend analysis sequence streams.
+        </div>
+    </div>
+
+    <script>
+        const uid = localStorage.getItem('user_uid');
+        if(!uid) { window.location.href = 'index.html'; }
+        document.getElementById('myUidDisplay').innerText = uid || "-";
+
+        async function verifyNodeLoop() {
+            try {
+                const res = await fetch('/api/user/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid })
+                });
+                const data = await res.json();
+                if(data.status !== 'approved') {
+                    alert('Terminal link expired or revoked by cluster root admin!');
+                    localStorage.removeItem('user_uid');
+                    window.location.href = 'index.html';
+                }
+            } catch (e) {}
+        }
+        setInterval(verifyNodeLoop, 5000);
+
+        function runLocalCountdown() {
+            setInterval(() => {
+                const now = new Date();
+                const seconds = now.getSeconds();
+                const remainingSeconds = 60 - seconds;
+                let displaySec = remainingSeconds < 10 ? "0" + remainingSeconds : remainingSeconds;
+                document.getElementById('timerDisplay').innerText = `⏳ NEXT HORIZON REFRESH: 00:${displaySec}s`;
+            }, 1000);
+        }
+        runLocalCountdown();
+
+        const socket = io();
+        socket.on('predictionUpdate', (data) => {
+            if(data && data.period) {
+                document.getElementById('periodId').innerHTML = `Period: <span style="color:var(--neon-glow); font-weight:800; font-size:26px;">${data.period}</span>`;
+                
+                if (data.topNumbers && data.topNumbers.length >= 3) {
+                    document.getElementById('num1').innerText = data.topNumbers[0].num;
+                    document.getElementById('chance1').innerText = data.topNumbers[0].chance + "%";
+                    
+                    document.getElementById('num2').innerText = data.topNumbers[1].num;
+                    document.getElementById('chance2').innerText = data.topNumbers[1].chance + "%";
+                    
+                    document.getElementById('num3').innerText = data.topNumbers[2].num;
+                    document.getElementById('chance3').innerText = data.topNumbers[2].chance + "%";
                 }
             }
+        });
 
-            let rawApiPeriodStr = strictHistoryLog[0].issueNumber.toString();
-            let safeUpcomingPeriod = calculateUpcomingPeriod(rawApiPeriodStr);
-            executePatternAnalysis(safeUpcomingPeriod);
-        } else {
-            executePatternAnalysis(calculateUpcomingPeriod(null));
-        }
-    } catch (networkError) {
-        executePatternAnalysis(calculateUpcomingPeriod(null));
-    }
-}
-
-setInterval(updatePrediction, 2000);
-updatePrediction();
-
-app.post('/api/admin/uid', (req, res) => {
-    const { token, uid, action, duration } = req.body;
-    if (token !== ADMIN_SECRET_TOKEN) return res.status(401).json({ error: 'Administrative state invalid.' });
-
-    if (action === 'approve') {
-        uids[uid] = { status: 'approved', expiry: Date.now() + (parseInt(duration) * 60 * 1000) };
-    } else if (action === 'reject' || action === 'delete') {
-        delete uids[uid];
-        io.emit('uidRevoked', { uid });
-    }
-    res.json({ success: true, uids });
-});
-
-app.get('/api/admin/uids', (req, res) => {
-    if (req.query.token !== ADMIN_SECRET_TOKEN) return res.status(401).json({ error: 'Administrative state invalid.' });
-    res.json(uids);
-});
-
-app.post('/api/user/verify', (req, res) => {
-    const { uid } = req.body;
-    if (!uid) return res.json({ status: 'invalid', message: 'Credentials parameter can not be null.' });
-    const match = uids[uid];
-    if (!match) return res.json({ status: 'pending', message: 'Access node verification: PENDING!' });
-    if (Date.now() > match.expiry) {
-        delete uids[uid];
-        return res.json({ status: 'expired', message: 'Active session window has closed!' });
-    }
-    res.json({ status: 'approved' });
-});
-
-io.on('connection', (socket) => {
-    socket.emit('predictionUpdate', globalPrediction);
-});
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[DETECTION CORE ONLINE] Server active on cluster port ${PORT}`));
-            
+        socket.on('uidRevoked', (data) => {
+            if(data.uid === uid) {
+                localStorage.removeItem('user_uid');
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>
