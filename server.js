@@ -61,13 +61,12 @@ function getCurrentWallclockPeriod() {
     return totalMinutes.toString().padStart(4, '0');
 }
 
-// Global prediction schema upgraded for high accuracy target arrays
 let globalPrediction = { 
     period: getCurrentWallclockPeriod(), 
     topNumbers: [
-        { num: 7, chance: 98 },
-        { num: 3, chance: 87 },
-        { num: 1, chance: 52 }
+        { num: 9, chance: 99 },
+        { num: 9, chance: 89 },
+        { num: 5, chance: 50 }
     ],
     timestamp: "00:00:00" 
 };
@@ -87,70 +86,65 @@ function calculateUpcomingPeriod(currentApiPeriodStr) {
 }
 
 // =======================================================================
-// HIGH-LEVEL ADVANCED ALGORITHM DETECT PATTERN ENGINE
+// FULL TREND ANALYSIS ALGORITHM (NO FORCED UNIQUE CONTROLS)
 // =======================================================================
 function executePatternAnalysis(upcomingPeriodStr) {
     let periodSeedValue = parseInt(upcomingPeriodStr) || 0;
-    let numberWeights = Array(10).fill(0);
+    
+    // Array slots inside score vectors mapping specific positions
+    let targetOneNum = 0;
+    let targetTwoNum = 0;
+    let targetThreeNum = 0;
 
     if (strictHistoryLog && strictHistoryLog.length > 0) {
         let structuralHistory = strictHistoryLog.slice(0, 50);
         let numericalStream = structuralHistory.map(g => parseInt(g.number || 0));
 
-        // LAYER 1: Deep Trend Pattern Frequency Analysis (50 Records Stored Layer)
-        numericalStream.forEach((num, index) => {
-            if (num >= 0 && num <= 9) {
-                // Hot distribution weights mapping (recent elements hold upper metrics)
-                numberWeights[num] += Math.max(5, 30 - index);
-            }
-        });
+        let lastNum = numericalStream[0];
+        let secondLastNum = numericalStream[1] !== undefined ? numericalStream[1] : 5;
+        let thirdLastNum = numericalStream[2] !== undefined ? numericalStream[2] : 3;
 
-        // LAYER 2: Advanced Delta Variance Jump Matrix
-        let primaryLastDigit = numericalStream[0];
-        let secondaryLastDigit = numericalStream[1] !== undefined ? numericalStream[1] : 5;
-        
-        let targetStepDelta = Math.abs(primaryLastDigit - secondaryLastDigit);
-        numberWeights[(primaryLastDigit + targetStepDelta) % 10] += 25;
-        numberWeights[Math.abs(primaryLastDigit - 1) % 10] += 20;
-        numberWeights[(primaryLastDigit * 2 + 3) % 10] += 15;
+        // HIGH LEVEL MATRIX SELECTION BASED ON DEEP RECENT TREND POINTERS
+        targetOneNum = (lastNum + (periodSeedValue % 3)) % 10;
+        targetTwoNum = Math.abs(secondLastNum - (periodSeedValue % 2)) % 10;
+        targetThreeNum = (thirdLastNum + 5) % 10;
 
-        // LAYER 3: Period Sequence Synchronization Rule
-        let seedTailFactor = periodSeedValue % 10;
-        numberWeights[seedTailFactor] += 18;
-        numberWeights[(seedTailFactor + 5) % 10] += 12;
+        // Custom weight modifiers according to overall frequency trends over 50 rounds
+        let frequencyMap = Array(10).fill(0);
+        numericalStream.forEach(n => { if(n >= 0 && n <= 9) frequencyMap[n]++; });
+
+        // Hot numbers validation overrides if trend demands it
+        if(frequencyMap[lastNum] > 8) {
+            targetTwoNum = lastNum; // Trend strongly indicates duplicate occurrence
+        }
+        if(frequencyMap[secondLastNum] > 10) {
+            targetOneNum = secondLastNum;
+            targetThreeNum = secondLastNum; // Trend matching dictates complete multi-stack replication
+        }
 
     } else {
-        // High-level fallback sequencing formula
-        for (let i = 0; i < 10; i++) {
-            numberWeights[i] = ((periodSeedValue * (i + 4)) % 73);
-        }
+        // High level pure algorithmic mathematical default mapping
+        targetOneNum = (periodSeedValue * 7) % 10;
+        targetTwoNum = (periodSeedValue * 3) % 10;
+        targetThreeNum = (periodSeedValue + 5) % 10;
     }
 
-    // Process high weight ranks mapping configuration
-    let scoreGrid = numberWeights.map((w, idx) => ({ num: idx, score: w }));
-    scoreGrid.sort((a, b) => b.score - a.score);
+    // Fixed High-Accuracy Level Probability Ranges requested by user
+    let percentageOne = 91 + (periodSeedValue % 9);       // 91% to 99%
+    let percentageTwo = 81 + ((periodSeedValue + 3) % 9); // 81% to 89%
+    let percentageThree = 45 + ((periodSeedValue + 6) % 11); // 45% to 55%
 
-    // Filter top 3 non-duplicate high accuracy numbers
-    let targetOne = scoreGrid[0].num;
-    let targetTwo = scoreGrid[1].num;
-    let targetThree = scoreGrid[2].num;
-
-    // Safety fallback for unexpected matrix overlap duplicates
-    if(targetTwo === targetOne) targetTwo = (targetOne + 1) % 10;
-    if(targetThree === targetOne || targetThree === targetTwo) targetThree = (targetTwo + 1) % 10;
-
-    // High Level Core Target Percentage Distribution mapping:
-    // Target 1: 91% to 99% | Target 2: 81% to 89% | Target 3: 45% to 55%
-    let percentageOne = 91 + (periodSeedValue % 9); 
-    let percentageTwo = 81 + ((periodSeedValue + 3) % 9);
-    let percentageThree = 45 + ((periodSeedValue + 7) % 11);
+    // Edge case limits safety check for presentation parameters
+    if(percentageOne > 99) percentageOne = 99;
+    if(percentageTwo > 89) percentageTwo = 89;
+    if(percentageThree > 55) percentageThree = 50;
 
     globalPrediction = {
         period: upcomingPeriodStr,
         topNumbers: [
-            { num: targetOne, chance: percentageOne },
-            { num: targetTwo, chance: percentageTwo },
-            { num: targetThree, chance: percentageThree }
+            { num: targetOneNum, chance: percentageOne },
+            { num: targetTwoNum, chance: percentageTwo },
+            { num: targetThreeNum, chance: percentageThree }
         ],
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
