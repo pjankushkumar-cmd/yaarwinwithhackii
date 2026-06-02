@@ -38,37 +38,32 @@
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         .num-block {
             background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 102, 204, 0.4));
             border: 1px solid rgba(0, 229, 255, 0.4);
             color: #fff;
-            padding: 12px 0;
+            padding: 16px 0;
             width: 110px;
             border-radius: 14px;
             box-shadow: 0 0 25px rgba(0, 229, 255, 0.3);
             text-align: center;
         }
         .num-main-val {
-            font-size: 36px;
+            font-size: 38px;
             font-weight: 900;
             font-family: monospace;
             display: block;
             text-shadow: 0 0 10px #fff;
+            margin-bottom: 4px;
         }
         .num-sub-lbl {
-            font-size: 11px;
+            font-size: 12px;
             letter-spacing: 0.5px;
-            color: #00ff66;
+            color: var(--neon-green);
             font-weight: 700;
             text-transform: uppercase;
-        }
-        .color-badge {
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: 2px;
-            text-shadow: 0 0 20px rgba(255,255,255,0.25);
         }
     </style>
 </head>
@@ -90,12 +85,9 @@
             <h3 style="margin: 0 0 18px 0; font-size: 11px; color:var(--neon-pink); letter-spacing: 3px; font-weight: 800;">⚡ HIGH-LEVEL CORE PREDICTOR ⚡</h3>
             <h2 id="periodId" style="font-size: 25px; margin: 5px 0; color: #fff; font-family: monospace;">Period: <span style="color: var(--neon-cyan); letter-spacing: 1px;">----</span></h2>
             
-            <hr style="border:0; border-top: 1px solid rgba(255,255,255,0.08); margin: 22px 0;">
+            <hr style="border:0; border-top: 1px solid rgba(255,255,255,0.08); margin: 25px 0;">
 
-            <div style="font-size: 14px; margin-bottom: 6px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">Target Color Node</div>
-            <div id="colorResult" class="color-badge" style="margin-bottom: 25px;">-</div>
-
-            <div style="font-size: 14px; margin-bottom: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">Top 3 Optimal Targets</div>
+            <div style="font-size: 14px; margin-bottom: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 1.5px;">TOP 3 OPTIMAL TARGETS</div>
             
             <div class="numbers-container">
                 <div class="num-block">
@@ -165,18 +157,6 @@
                     
                     document.getElementById('num3').innerText = data.topNumbers[2].num;
                     document.getElementById('chance3').innerText = data.topNumbers[2].chance + "%";
-                }
-                
-                let clrElement = document.getElementById('colorResult');
-                if(data.color === "GREEN") {
-                    clrElement.style.color = "var(--neon-green)";
-                    clrElement.innerText = "GREEN";
-                } else if(data.color === "RED") {
-                    clrElement.style.color = "var(--neon-red)";
-                    clrElement.innerText = "RED";
-                } else {
-                    clrElement.style.color = "#ffffff";
-                    clrElement.innerText = data.color;
                 }
             }
         });
