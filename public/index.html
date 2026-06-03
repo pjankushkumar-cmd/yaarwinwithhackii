@@ -5,35 +5,197 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Yaar Win with Hackii - Access Terminal</title>
+    <style>
+        :root {
+            --bg-dark-mainframe: #050001;
+            --bg-cyber-gradient: radial-gradient(circle at center, #1b0005 0%, #030001 100%);
+            --glass-card-matrix: rgba(15, 1, 4, 0.94);
+            --neon-red-mainframe: #ff0033;
+            --neon-glow-laser: #ff2c54;
+            --heavy-border-line: rgba(255, 0, 51, 0.38);
+            --text-high-contrast: #ffffff;
+            --text-secondary-dim: #cccccc;
+        }
+
+        body {
+            background: var(--bg-cyber-gradient);
+            color: var(--text-high-contrast);
+            font-family: 'Courier New', Courier, monospace, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 450px;
+            width: 92%;
+            margin: 20px auto;
+            background: var(--glass-card-matrix);
+            padding: 38px 24px;
+            border-radius: 20px;
+            box-shadow: 0 0 65px rgba(255, 0, 51, 0.22), inset 0 0 20px rgba(255, 0, 51, 0.1);
+            border: 1px solid var(--heavy-border-line);
+            backdrop-filter: blur(22px);
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .hack-title {
+            font-size: 32px;
+            font-weight: 900;
+            margin: 4px 0;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .sub-title {
+            font-size: 12px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            color: var(--text-secondary-dim);
+            font-weight: 900;
+        }
+
+        /* New User Interactive Guide Box */
+        .guide-box {
+            background: rgba(255, 0, 51, 0.05);
+            border: 1px dashed var(--neon-red-mainframe);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .guide-box h4 {
+            margin: 0 0 8px 0;
+            color: var(--neon-glow-laser);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .guide-box ol {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 12px;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .notice-box {
+            background: rgba(5, 0, 1, 0.96);
+            padding: 22px;
+            border-radius: 18px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 0, 51, 0.25);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--heavy-border-line);
+            border-radius: 10px;
+            color: #fff;
+            font-family: monospace;
+            box-sizing: border-box;
+            text-align: center;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--neon-glow-laser);
+            box-shadow: 0 0 12px rgba(255, 0, 51, 0.4);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #cc0029, #730014);
+            border: 1px solid var(--neon-glow-laser);
+            color: #fff;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255, 0, 51, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #ff0033, #99001a);
+            box-shadow: 0 6px 20px rgba(255, 0, 51, 0.5);
+        }
+
+        .btn-reg {
+            background: linear-gradient(135deg, #ff0033, #b30022) !important;
+            box-shadow: 0 5px 18px rgba(255, 0, 51, 0.45) !important;
+            border: none !important;
+            margin-top: 8px;
+        }
+
+        .btn-tg {
+            background: transparent !important;
+            border: 1px dashed var(--neon-red-mainframe) !important;
+            color: var(--neon-glow-laser) !important;
+            box-shadow: none !important;
+            margin-top: 10px;
+        }
+
+        .btn-tg:hover {
+            background: rgba(255, 0, 51, 0.1) !important;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="hack-title" style="color: var(--gold); text-shadow: 0 0 25px rgba(255,170,0,0.6);">⚡YAAR WIN WITH HACKII ⚡</h1>
-        <h2 class="sub-title" style="color: var(--neon-cyan); text-shadow: 0 0 12px rgba(0,229,255,0.4);">DETECTIVE ALGORITHM SYSTEM</h2>
+        <h1 class="hack-title" style="color: var(--neon-red-mainframe); text-shadow: 0 0 30px rgba(255,0,51,0.85);">⚡YAAR WIN WITH HACKII ⚡</h1>
+        <h2 class="sub-title">DEEP PATTERN DETECTION MAINFRAME</h2>
         
-        <div style="background: rgba(255, 255, 255, 0.02); padding: 22px; border-radius: 18px; margin-bottom: 25px; border: 1px solid rgba(255, 255, 255, 0.06);">
-            <p style="font-size: 13px; color: #fff; margin: 0 0 14px 0; font-weight: 600; opacity: 0.9;">System Notice: Ensure your dynamic validation sequence account on YaarWin is verified:</p>
-            <button onclick="window.location.href='https://yaarwin.org/#/register?invitationCode=18426755757'" style="background: linear-gradient(135deg, #ff0055, #ff4500); box-shadow: 0 5px 18px rgba(255, 0, 85, 0.45);">SECURE REGISTER LINK</button>
+        <!-- New Member Dedicated Step Guide Panel -->
+        <div class="guide-box">
+            <h4>💡 NEW USER GUIDE (पढ़ें और सीखें):</h4>
+            <ol>
+                <li>नीचे दिए गए <strong>SECURE REGISTER LINK</strong> बटन पर क्लिक करके नया अकाउंट बनाएं।</li>
+                <li>रजिस्टर करने के बाद अपनी <strong>Game ID / UID</strong> को कॉपी करें।</li>
+                <li>कॉपी की हुई ID को नीचे बॉक्स में डालकर <strong>START TERMINAL NOW</strong> दबाएं।</li>
+            </ol>
         </div>
 
-        <p style="font-size: 13px; color: #b3b3b3; margin-bottom: 8px;">Provide your authorized mainframe key below:</p>
-        <input type="text" id="uidInput" placeholder="Enter Dynamic Access UID...">
-        <button onclick="verifyUID()">START NOW</button>
+        <div class="notice-box">
+            <p style="font-size: 13px; color: #fff; margin: 0 0 14px 0; font-weight: 600; opacity: 0.9;">System Notice: Ensure your dynamic validation sequence account on YaarWin is verified:</p>
+            <button class="btn-reg" onclick="window.location.href='https://4yaarwin.com/#/register?invitationCode=18426755757'">SECURE REGISTER LINK</button>
+        </div>
+
+        <p style="font-size: 13px; color: var(--text-secondary-dim); margin-bottom: 8px;">Provide your authorized mainframe key / Game ID below:</p>
+        <input type="text" id="uidInput" placeholder="Enter Game UID to Authenticate...">
+        <button onclick="verifyUID()">START TERMINAL NOW</button>
         
         <div id="msgBox" style="margin-top: 20px; font-size: 14px; font-weight: 600; min-height: 20px;"></div>
         
-        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.07); margin: 30px 0;">
+        <hr style="border: 0; border-top: 1px solid var(--heavy-border-line); margin: 30px 0;">
         <p style="font-size: 12px; color: #8c8c8c; line-height: 1.5;">Require active authorization nodes or validity credentials? Contact central desk:</p>
-        <button class="btn-tg" onclick="window.location.href='https://t.me/hackii_sureshote'">REQUEST UID VERIFY</button>
+        <button class="btn-tg" onclick="window.location.href='https://t.me/hackii_sureshote'">REQUEST UID VERIFY / HELP</button>
     </div>
 
     <script>
         async function verifyUID() {
             const uid = document.getElementById('uidInput').value.trim();
             const msgBox = document.getElementById('msgBox');
+            
+            // If new user clicks start without entering details, show user friendly custom guidelines alert
             if(!uid) {
-                msgBox.innerText = "Error: Security input string missing!";
-                msgBox.style.color = "var(--neon-pink)";
+                alert("🔴 ATTENTION NEW MEMBER!\n\n1. Sabse pehle upar 'SECURE REGISTER LINK' par click karke register karein.\n2. Register karke apni game ki new ID yahan box me dalein.\n3. Agar aapne new ID nahi banayi hai ya koi problem aa rahi hai, toh neeche diye gaye Telegram link par click karke message karein!");
+                
+                msgBox.innerText = "Error: Please register and enter your Game ID / UID!";
+                msgBox.style.color = "var(--neon-glow-laser)";
                 return;
             }
             
@@ -49,15 +211,15 @@
                     localStorage.setItem('user_uid', uid);
                     window.location.href = 'dashboard.html';
                 } else {
-                    msgBox.innerText = data.message;
-                    msgBox.style.color = "var(--neon-pink)";
+                    // Friendly message if key is not yet active or dynamic check fails
+                    msgBox.innerText = data.message + " | New ID? Please message on Telegram.";
+                    msgBox.style.color = "var(--neon-glow-laser)";
                 }
             } catch (err) {
                 msgBox.innerText = "Network channel timeout. Re-establishing connection...";
-                msgBox.style.color = "var(--neon-pink)";
+                msgBox.style.color = "var(--neon-glow-laser)";
             }
         }
     </script>
 </body>
 </html>
-
