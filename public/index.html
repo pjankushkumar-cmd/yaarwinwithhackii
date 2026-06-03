@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HACKII - Cyber Access Gateway</title>
+    <title>HACKII - Cyber Gateway Terminal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
             <button class="btn-reg" onclick="window.location.href='https://4yaarwin.com/#/register?invitationCode=18426755757'">
                 🛡️ SECURE REGISTER LINK
             </button>
-            <p class="helper-text">Naya account banakar apni official UID niche grid me fill karein.</p>
+            <p class="helper-text">Naya account banakar apni official UID niiche box me verify karein.</p>
         </div>
 
         <div class="input-container">
@@ -30,7 +30,7 @@
             💬 TELEGRAM LIVE SUPPORT
         </button>
 
-        <div id="msgBox" class="msg-display">System Status: Secure Node Ready</div>
+        <div id="msgBox" class="msg-display">System Status: Secure Terminal Active</div>
     </div>
 
     <script>
@@ -44,7 +44,7 @@
                 return;
             }
 
-            msgBox.innerText = "Connecting to authorization node...";
+            msgBox.innerText = "Connecting to validation node...";
             msgBox.style.color = "var(--gold)";
 
             try {
@@ -59,12 +59,11 @@
                     localStorage.setItem('user_uid', uid);
                     window.location.href = 'dashboard.html';
                 } else {
-                    // Accurate system instruction response prompt
                     msgBox.innerText = "HACKII bhai se uid verification karbou";
                     msgBox.style.color = "var(--neon-red)";
                 }
             } catch (err) {
-                msgBox.innerText = "Network link failure. Re-trying node allocation...";
+                msgBox.innerText = "Network node interface failure.";
                 msgBox.style.color = "var(--neon-red)";
             }
         }
