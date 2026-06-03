@@ -27,7 +27,7 @@ app.get('/admin.html', (req, res) => {
 });
 
 let uids = {}; 
-let strictHistoryLog = []; 
+let strictHistoryLog = []; // Yeh aapka 50 ka main database store hai
 const DB_FILE_PATH = path.join(__dirname, 'history_database.json');
 
 function loadPermanentHistoryDatabase() {
@@ -36,12 +36,13 @@ function loadPermanentHistoryDatabase() {
             const rawData = fs.readFileSync(DB_FILE_PATH, 'utf8');
             const parsedData = JSON.parse(rawData);
             if (Array.isArray(parsedData)) {
+                // Strict 50 check limit on start
                 strictHistoryLog = parsedData.slice(0, 50);
-                console.log(`[MAIN NODE] Syncing system configurations: ${strictHistoryLog.length}`);
+                console.log(`[MAIN NODE] Telemetry Array Synchronized: Stored Count = ${strictHistoryLog.length}`);
             }
         }
     } catch (err) {
-        console.log("[MAIN NODE] Local telemetry stack initialized successfully.");
+        console.log("[MAIN NODE] Local telemetry database initial configuration ready.");
     }
 }
 
@@ -49,7 +50,7 @@ function saveToPermanentDatabase() {
     try {
         fs.writeFileSync(DB_FILE_PATH, JSON.stringify(strictHistoryLog, null, 2), 'utf8');
     } catch (err) {
-        console.log("[MAIN NODE] Telemetry cache persistence layer error:", err);
+        console.log("[MAIN NODE] Local storage write operation failed:", err);
     }
 }
 
@@ -64,9 +65,9 @@ function getCurrentWallclockPeriod() {
 let globalPrediction = { 
     period: getCurrentWallclockPeriod(), 
     topNumbers: [
-        { num: 9, chance: 99 },
-        { num: 9, chance: 89 },
-        { num: 5, chance: 50 }
+        { num: 1, chance: 99 },
+        { num: 2, chance: 89 },
+        { num: 3, chance: 50 }
     ],
     timestamp: "00:00:00" 
 };
@@ -86,65 +87,71 @@ function calculateUpcomingPeriod(currentApiPeriodStr) {
 }
 
 // =======================================================================
-// FULL TREND ANALYSIS ALGORITHM (NO FORCED UNIQUE CONTROLS)
+// REAL HIGH-LEVEL DEEP TREND ANALYTICS DETECTION CORE (FIFO QUEUE BASED)
 // =======================================================================
 function executePatternAnalysis(upcomingPeriodStr) {
-    let periodSeedValue = parseInt(upcomingPeriodStr) || 0;
-    
-    // Array slots inside score vectors mapping specific positions
     let targetOneNum = 0;
     let targetTwoNum = 0;
     let targetThreeNum = 0;
 
+    // Strict validation check of the 50 results trend stream
     if (strictHistoryLog && strictHistoryLog.length > 0) {
-        let structuralHistory = strictHistoryLog.slice(0, 50);
-        let numericalStream = structuralHistory.map(g => parseInt(g.number || 0));
+        let numericalStream = strictHistoryLog.map(g => parseInt(g.number || 0));
+        
+        // --- LAYER 1: FREQUENCY COUNTING ANALYSIS ---
+        let weightCounter = Array(10).fill(0);
+        numericalStream.forEach((num, index) => {
+            if (num >= 0 && num <= 9) {
+                // Jo number jitna haal hi me aaya hai usko "Recency Premium Weight" milega
+                let recencyBonus = Math.max(5, 50 - index);
+                weightCounter[num] += recencyBonus;
+            }
+        });
 
-        let lastNum = numericalStream[0];
+        // --- LAYER 2: ADVANCED MATRIX PATTERN & SEQUENCING ---
+        let lastNum = numericalStream[0]; // Bilkul latest live result number
         let secondLastNum = numericalStream[1] !== undefined ? numericalStream[1] : 5;
-        let thirdLastNum = numericalStream[2] !== undefined ? numericalStream[2] : 3;
+        let thirdLastNum = numericalStream[2] !== undefined ? numericalStream[2] : 0;
 
-        // HIGH LEVEL MATRIX SELECTION BASED ON DEEP RECENT TREND POINTERS
-        targetOneNum = (lastNum + (periodSeedValue % 3)) % 10;
-        targetTwoNum = Math.abs(secondLastNum - (periodSeedValue % 2)) % 10;
-        targetThreeNum = (thirdLastNum + 5) % 10;
-
-        // Custom weight modifiers according to overall frequency trends over 50 rounds
-        let frequencyMap = Array(10).fill(0);
-        numericalStream.forEach(n => { if(n >= 0 && n <= 9) frequencyMap[n]++; });
-
-        // Hot numbers validation overrides if trend demands it
-        if(frequencyMap[lastNum] > 8) {
-            targetTwoNum = lastNum; // Trend strongly indicates duplicate occurrence
+        // Pattern Check A: Agar same number back-to-back do baar repeat hua ho (Double Trend)
+        if (lastNum === secondLastNum) {
+            weightCounter[lastNum] += 45; // Us number ke aane ke chance highest scale pe boost honge
         }
-        if(frequencyMap[secondLastNum] > 10) {
-            targetOneNum = secondLastNum;
-            targetThreeNum = secondLastNum; // Trend matching dictates complete multi-stack replication
+
+        // Pattern Check B: Alternating series matching logic (Mirror Sequence like 3 -> 7 -> 3)
+        if (lastNum === thirdLastNum && lastNum !== secondLastNum) {
+            weightCounter[secondLastNum] += 35; // Shifting pointer calculation weights
         }
+
+        // Pattern Check C: Next Neighborhood Jump Rules
+        let dynamicStep = Math.abs(lastNum - secondLastNum) || 1;
+        weightCounter[(lastNum + dynamicStep) % 10] += 20;
+        weightCounter[Math.abs(lastNum - dynamicStep) % 10] += 15;
+
+        // Extracting Top Positions strictly computed from our weight counter matrix
+        let sortedWeights = weightCounter.map((w, idx) => ({ num: idx, weight: w }));
+        sortedWeights.sort((a, b) => b.weight - a.weight);
+
+        // Assigning live calculated trend numbers (Can naturally overlap if system demands duplicate)
+        targetOneNum = sortedWeights[0].num;
+        targetTwoNum = sortedWeights[1].num;
+        targetThreeNum = sortedWeights[2].num;
 
     } else {
-        // High level pure algorithmic mathematical default mapping
-        targetOneNum = (periodSeedValue * 7) % 10;
-        targetTwoNum = (periodSeedValue * 3) % 10;
-        targetThreeNum = (periodSeedValue + 5) % 10;
+        // Fallback procedural seeding mechanism if terminal arrays are entirely empty
+        let fallbackSeed = parseInt(upcomingPeriodStr) || 7;
+        targetOneNum = (fallbackSeed * 3) % 10;
+        targetTwoNum = (fallbackSeed + 7) % 10;
+        targetThreeNum = Math.abs(fallbackSeed - 2) % 10;
     }
 
-    // Fixed High-Accuracy Level Probability Ranges requested by user
-    let percentageOne = 91 + (periodSeedValue % 9);       // 91% to 99%
-    let percentageTwo = 81 + ((periodSeedValue + 3) % 9); // 81% to 89%
-    let percentageThree = 45 + ((periodSeedValue + 6) % 11); // 45% to 55%
-
-    // Edge case limits safety check for presentation parameters
-    if(percentageOne > 99) percentageOne = 99;
-    if(percentageTwo > 89) percentageTwo = 89;
-    if(percentageThree > 55) percentageThree = 50;
-
+    // Strict fixed target user accuracy percentage outputs
     globalPrediction = {
         period: upcomingPeriodStr,
         topNumbers: [
-            { num: targetOneNum, chance: percentageOne },
-            { num: targetTwoNum, chance: percentageTwo },
-            { num: targetThreeNum, chance: percentageThree }
+            { num: targetOneNum, chance: 99 }, // High Performance Main Rank
+            { num: targetTwoNum, chance: 89 }, // Secondary Backup Rank
+            { num: targetThreeNum, chance: 50 } // Neutral Mathematical Cover
         ],
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
@@ -166,20 +173,33 @@ async function updatePrediction() {
         if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
             const incomingApiList = response.data.data.list;
             
+            // Initial data hydration layer
             if (strictHistoryLog.length === 0) {
                 strictHistoryLog = incomingApiList.slice(0, 50);
                 saveToPermanentDatabase();
             } else {
-                const latestIncomingRound = incomingApiList[0];
-                const existingLoggedRound = strictHistoryLog[0];
-
-                if (latestIncomingRound.issueNumber !== existingLoggedRound.issueNumber) {
-                    strictHistoryLog.unshift(latestIncomingRound);
-                    if (strictHistoryLog.length > 50) {
-                        strictHistoryLog = strictHistoryLog.slice(0, 50);
+                // REALTIME ACCURATE FIFO QUEUE IMPLEMENTATION
+                // Hum humesha newest structural updates check karenge dynamically
+                for (let i = incomingApiList.length - 1; i >= 0; i--) {
+                    let incomingRound = incomingApiList[i];
+                    
+                    // Check if current check cycle exists inside inside tracking node arrays
+                    let alreadyLogged = strictHistoryLog.some(item => item.issueNumber === incomingRound.issueNumber);
+                    
+                    if (!alreadyLogged) {
+                        // Naya record start me push karein (index 0)
+                        strictHistoryLog.unshift(incomingRound);
+                        
+                        // STRICT LIMIT 50 LOGIC CONTROL (FIFO GATEWAY)
+                        // Agar 51 wa aaya toh sabse purana automatic nikal jayega array se
+                        if (strictHistoryLog.length > 50) {
+                            strictHistoryLog = strictHistoryLog.slice(0, 50);
+                        }
+                        
+                        console.log(`[FIFO MATRIX UPDATED] New Issue Verified: ${incomingRound.issueNumber}. Active Queue: ${strictHistoryLog.length}`);
                     }
-                    saveToPermanentDatabase(); 
                 }
+                saveToPermanentDatabase(); 
             }
 
             let rawApiPeriodStr = strictHistoryLog[0].issueNumber.toString();
