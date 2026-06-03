@@ -71,12 +71,13 @@ function getCurrentWallclockPeriod() {
     return totalMinutes.toString().padStart(4, '0');
 }
 
+// Global prediction object updated for Big/Small and 2 Numbers
 let globalPrediction = { 
     period: getCurrentWallclockPeriod(), 
+    prediction: "BIG", // BIG or SMALL
     topNumbers: [
-        { num: 1, chance: 99 },
-        { num: 6, chance: 89 },
-        { num: 8, chance: 50 }
+        { num: 6, chance: 99 },
+        { num: 8, chance: 89 }
     ],
     timestamp: "00:00:00" 
 };
@@ -89,25 +90,23 @@ const GAME_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePa
 function calculateUpcomingPeriod(currentApiPeriodStr) {
     let targetFourDigits = "";
     if (currentApiPeriodStr && currentApiPeriodStr.length >= 4) {
-        // Last 4 digits ko extract karna target trend ke liye
         targetFourDigits = currentApiPeriodStr.slice(-4);
     } else {
         targetFourDigits = getCurrentWallclockPeriod();
     }
     
-    // Incrementing by +1 strictly for the upcoming period display
     let incrementedValue = parseInt(targetFourDigits) + 1;
     if (incrementedValue > 9999) { incrementedValue = 0; }
     return incrementedValue.toString().padStart(4, '0');
 }
 
 // ==================================================================================
-// ADVANCED TREND ENGINE FOR UPCOMING PREDICTIONS
+// NEW TREND ENGINE FOR BIG / SMALL & 2 TARGET NUMBERS
 // ==================================================================================
 function executePatternAnalysis(upcomingPeriodStr) {
+    let finalPrediction = "BIG";
     let targetOneNum = 0;
     let targetTwoNum = 0;
-    let targetThreeNum = 0;
 
     if (strictHistoryLog && strictHistoryLog.length > 0) {
         let numericalStream = strictHistoryLog.map(g => {
@@ -131,7 +130,7 @@ function executePatternAnalysis(upcomingPeriodStr) {
         let thirdLastNum = numericalStream[2] !== undefined ? numericalStream[2] : 0;
         let fourthLastNum = numericalStream[3] !== undefined ? numericalStream[3] : 7;
 
-        // LAYER 2: Markov Chain Probability (Next Number Predictor)
+        // LAYER 2: Markov Chain Probability
         for (let i = 0; i < numericalStream.length - 1; i++) {
             if (numericalStream[i + 1] === lastNum) {
                 let nextTargetInHistory = numericalStream[i];
@@ -147,36 +146,58 @@ function executePatternAnalysis(upcomingPeriodStr) {
         if (lastNum === thirdLastNum && lastNum !== secondLastNum) weightCounter[secondLastNum] += 70; 
         if (secondLastNum === fourthLastNum && lastNum !== secondLastNum) weightCounter[lastNum] += 60;
 
-        // LAYER 5: Delta Jump Vectors (Modulo Step Math)
+        // LAYER 5: Delta Jump Vectors
         let primaryDeltaGap = Math.abs(lastNum - secondLastNum) || 1;
         let secondaryDeltaGap = Math.abs(secondLastNum - thirdLastNum) || 1;
         
         weightCounter[(lastNum + primaryDeltaGap) % 10] += 50;
         weightCounter[Math.abs(lastNum - secondaryDeltaGap) % 10] += 40;
-        weightCounter[(parseInt(upcomingPeriodStr) + lastNum) % 10] += 30; // Direct Period binding index
+        weightCounter[(parseInt(upcomingPeriodStr) + lastNum) % 10] += 30;
+
+        // Calculate Overall Big vs Small Weight
+        let smallWeight = weightCounter[0] + weightCounter[1] + weightCounter[2] + weightCounter[3] + weightCounter[4];
+        let bigWeight = weightCounter[5] + weightCounter[6] + weightCounter[7] + weightCounter[8] + weightCounter[9];
 
         let clusterScores = weightCounter.map((w, idx) => ({ num: idx, weight: w }));
-        clusterScores.sort((a, b) => b.weight - a.weight);
 
-        targetOneNum = clusterScores[0].num;
-        targetTwoNum = clusterScores[1].num;
-        targetThreeNum = clusterScores[2].num;
+        // Rule Filter: Filter numbers based on Big or Small dominance
+        if (bigWeight >= smallWeight) {
+            finalPrediction = "BIG";
+            // Filter only Big numbers (5-9) and sort
+            let bigNumbers = clusterScores.filter(item => item.num >= 5);
+            bigNumbers.sort((a, b) => b.weight - a.weight);
+            targetOneNum = bigNumbers[0].num;
+            targetTwoNum = bigNumbers[1].num;
+        } else {
+            finalPrediction = "SMALL";
+            // Filter only Small numbers (0-4) and sort
+            let smallNumbers = clusterScores.filter(item => item.num <= 4);
+            smallNumbers.sort((a, b) => b.weight - a.weight);
+            targetOneNum = smallNumbers[0].num;
+            targetTwoNum = smallNumbers[1].num;
+        }
 
     } else {
-        // High level pure algebraic algorithm seeding backup if cache arrays aren't populated
+        // Fallback Algorithm Seed
         let structuralFallbackSeed = parseInt(upcomingPeriodStr) || 9;
-        targetOneNum = (structuralFallbackSeed * 7 + 3) % 10;
-        targetTwoNum = (structuralFallbackSeed * 3 + 1) % 10;
-        targetThreeNum = Math.abs(structuralFallbackSeed * 2 - 5) % 10;
+        if (structuralFallbackSeed % 2 === 0) {
+            finalPrediction = "BIG";
+            targetOneNum = 6;
+            targetTwoNum = 8;
+        } else {
+            finalPrediction = "SMALL";
+            targetOneNum = 1;
+            targetTwoNum = 3;
+        }
     }
 
-    // Assigning variables to the strict upcoming period structure
+    // New Data Structure broadcasted to Client Engine
     globalPrediction = {
         period: upcomingPeriodStr, 
+        prediction: finalPrediction,
         topNumbers: [
             { num: targetOneNum, chance: 99 }, 
-            { num: targetTwoNum, chance: 89 }, 
-            { num: targetThreeNum, chance: 50 } 
+            { num: targetTwoNum, chance: 89 }
         ],
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
@@ -230,13 +251,9 @@ async function updatePrediction() {
                 saveToPermanentDatabase(); 
             }
 
-            // Current raw issue extracted from live stream
             let rawApiPeriodStr = strictHistoryLog[0].issueNumber.toString();
-            
-            // STRICT CORE LOGIC: Dynamic +1 addition to push calculation towards UPCOMING period
             let safeUpcomingPeriod = calculateUpcomingPeriod(rawApiPeriodStr);
             
-            // Running evaluation matrix on upcoming period code
             executePatternAnalysis(safeUpcomingPeriod);
             currentProxyIndex = 0; 
         } else {
@@ -295,3 +312,4 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => console.log(`[UPCOMING ENGINE ONLINE] Server active on port ${PORT}`));
+        
