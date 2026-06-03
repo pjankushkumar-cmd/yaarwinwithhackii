@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yaar Win with Hackii - Professional Red Command Panel</title>
+    <title>Yaar Win with Hackii - Supreme Red Command Center</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root {
-            --bg-main: #060002;
-            --bg-gradient: radial-gradient(circle at center, #1f0107 0%, #030001 100%);
-            --card-bg: rgba(18, 2, 6, 0.93);
-            --neon-red-primary: #ff0033;
-            --neon-glow: #ff2b56;
-            --dark-border: rgba(255, 0, 51, 0.35);
-            --text-main: #ffffff;
-            --text-sub: #cccccc;
+            --bg-dark-mainframe: #050001;
+            --bg-cyber-gradient: radial-gradient(circle at center, #1b0005 0%, #030001 100%);
+            --glass-card-matrix: rgba(15, 1, 4, 0.94);
+            --neon-red-mainframe: #ff0033;
+            --neon-glow-laser: #ff2c54;
+            --heavy-border-line: rgba(255, 0, 51, 0.38);
+            --text-high-contrast: #ffffff;
+            --text-secondary-dim: #cccccc;
         }
 
         body {
-            background: var(--bg-gradient);
-            color: var(--text-main);
+            background: var(--bg-cyber-gradient);
+            color: var(--text-high-contrast);
             font-family: 'Courier New', Courier, monospace, sans-serif;
             margin: 0;
             padding: 0;
@@ -31,132 +31,132 @@
         }
 
         .container {
-            max-width: 440px;
+            max-width: 450px;
             width: 92%;
             margin: 20px auto;
-            background: var(--card-bg);
-            padding: 35px 24px;
+            background: var(--glass-card-matrix);
+            padding: 38px 24px;
             border-radius: 20px;
-            box-shadow: 0 0 60px rgba(255, 0, 51, 0.2), inset 0 0 15px rgba(255, 0, 51, 0.08);
-            border: 1px solid var(--dark-border);
-            backdrop-filter: blur(20px);
+            box-shadow: 0 0 65px rgba(255, 0, 51, 0.22), inset 0 0 20px rgba(255, 0, 51, 0.1);
+            border: 1px solid var(--heavy-border-line);
+            backdrop-filter: blur(22px);
             box-sizing: border-box;
             text-align: center;
         }
 
         .hack-title {
-            font-size: 36px;
+            font-size: 38px;
             font-weight: 900;
-            margin: 5px 0;
-            letter-spacing: 4px;
+            margin: 4px 0;
+            letter-spacing: 5px;
             text-transform: uppercase;
             font-family: 'Segoe UI', Roboto, sans-serif;
         }
 
         .sub-title {
             font-size: 12px;
-            letter-spacing: 5px;
+            letter-spacing: 6px;
             text-transform: uppercase;
-            margin-bottom: 30px;
-            color: var(--text-sub);
-            font-weight: bold;
+            margin-bottom: 32px;
+            color: var(--text-secondary-dim);
+            font-weight: 900;
         }
 
         .timer-box {
             font-size: 16px;
             color: #ffffff;
             margin: 15px 0;
-            text-shadow: 0 0 12px var(--neon-red-primary);
+            text-shadow: 0 0 14px var(--neon-red-mainframe);
             font-weight: 700;
-            background: rgba(10, 0, 2, 0.9);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px dashed var(--neon-red-primary);
+            background: rgba(8, 0, 1, 0.95);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px dashed var(--neon-red-mainframe);
             letter-spacing: 1px;
         }
 
         .blinking-dot {
-            width: 9px;
-            height: 9px;
-            background-color: var(--neon-red-primary);
+            width: 10px;
+            height: 10px;
+            background-color: var(--neon-red-mainframe);
             border-radius: 50%;
             display: inline-block;
-            margin-right: 8px;
-            animation: blink-node 1.4s infinite;
-            box-shadow: 0 0 14px var(--neon-red-primary);
+            margin-right: 9px;
+            animation: pulse-mainframe 1.3s infinite;
+            box-shadow: 0 0 15px var(--neon-red-mainframe);
         }
 
-        @keyframes blink-node {
-            0% { opacity: 0.2; }
+        @keyframes pulse-mainframe {
+            0% { opacity: 0.25; }
             50% { opacity: 1; }
-            100% { opacity: 0.2; }
+            100% { opacity: 0.25; }
         }
 
         .prediction-box {
-            background: rgba(5, 0, 1, 0.95);
-            border: 1px solid rgba(255, 0, 51, 0.3);
-            padding: 28px 20px;
-            margin: 25px 0;
+            background: rgba(4, 0, 1, 0.96);
+            border: 1px solid rgba(255, 0, 51, 0.35);
+            padding: 30px 20px;
+            margin: 26px 0;
             border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.9);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.95);
         }
 
         .numbers-container {
             display: flex;
             justify-content: center;
             gap: 12px;
-            margin-top: 20px;
+            margin-top: 22px;
         }
 
         .num-block {
-            background: linear-gradient(135deg, rgba(255, 0, 51, 0.18), rgba(20, 0, 3, 0.7));
-            border: 1px solid rgba(255, 0, 51, 0.5);
+            background: linear-gradient(135deg, rgba(255, 0, 51, 0.2), rgba(22, 0, 4, 0.75));
+            border: 1px solid rgba(255, 0, 51, 0.55);
             color: #ffffff;
-            padding: 20px 0;
-            width: 115px;
+            padding: 22px 0;
+            width: 118px;
             border-radius: 12px;
-            box-shadow: 0 0 22px rgba(255, 0, 51, 0.3);
+            box-shadow: 0 0 25px rgba(255, 0, 51, 0.35);
             text-align: center;
         }
 
         .num-main-val {
-            font-size: 48px;
+            font-size: 52px;
             font-weight: 900;
             font-family: monospace;
             display: block;
-            text-shadow: 0 0 15px var(--neon-red-primary);
+            text-shadow: 0 0 18px var(--neon-red-mainframe);
             margin-bottom: 4px;
         }
 
         .num-sub-lbl {
             font-size: 14px;
             letter-spacing: 1px;
-            color: var(--neon-glow);
-            font-weight: 800;
+            color: var(--neon-glow-laser);
+            font-weight: 900;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="hack-title" style="color: var(--neon-red-primary); text-shadow: 0 0 30px rgba(255,0,51,0.85);">HACKII</h1>
-        <h2 class="sub-title">CORE TREND TERMINAL</h2>
+        <h1 class="hack-title" style="color: var(--neon-red-mainframe); text-shadow: 0 0 35px rgba(255,0,51,0.95);">HACKII</h1>
+        <h2 class="sub-title">TREND DETECTION TERMINAL</h2>
         
-        <div style="background: rgba(0,0,0,0.7); padding: 14px; border-radius: 10px; margin-bottom: 25px; border: 1px solid rgba(255,0,51,0.2); text-align: left; display: flex; flex-direction: column; gap: 6px;">
-            <p style="font-size: 12px; margin: 0; color: #e6e6e6;">
-                <span class="blinking-dot"></span> PATTERN MONITOR: <span style="color:var(--neon-red-primary); font-weight:700; id='statusText'">SYNCHRONIZED</span>
+        <div style="background: rgba(0,0,0,0.75); padding: 15px; border-radius: 10px; margin-bottom: 26px; border: 1px solid rgba(255,0,51,0.25); text-align: left; display: flex; flex-direction: column; gap: 6px;">
+            <p style="font-size: 12px; margin: 0; color: #f2f2f2;">
+                <span class="blinking-dot"></span> PATTERN MONITOR: <span style="color:var(--neon-red-mainframe); font-weight:900;">DEEP PATTERN DETECTIVE CONNECTED</span>
             </p>
-            <p style="font-size: 12px; margin: 0; color: #b3b3b3;">SYSTEM NODE ACCESS UID: <span id="myUidDisplay" style="color:var(--neon-glow); font-weight:700;">-</span></p>
+            <p style="font-size: 12px; margin: 0; color: #bbbbbb;">SYSTEM NODE ACCESS UID: <span id="myUidDisplay" style="color:var(--neon-glow-laser); font-weight:700;">-</span></p>
         </div>
 
         <div class="timer-box" id="timerDisplay">⏳ NEXT HORIZON REFRESH: 00:00s</div>
 
         <div class="prediction-box">
-            <h3 style="margin: 0 0 20px 0; font-size: 12px; color: var(--neon-red-primary); letter-spacing: 3px; font-weight: 800;">⚡ DYNAMIC TREND ANALYSIS DETECT ⚡</h3>
-            <h2 id="periodId" style="font-size: 26px; margin: 5px 0; color: #fff; font-family: monospace;">Period: <span style="color: var(--neon-glow); letter-spacing: 1px;">----</span></h2>
+            <h3 style="margin: 0 0 22px 0; font-size: 12px; color: var(--neon-red-mainframe); letter-spacing: 3px; font-weight: 900;">⚡ FULL TREND DYNAMIC ANALYSIS ENGINE ⚡</h3>
+            <h2 id="periodId" style="font-size: 26px; margin: 5px 0; color: #fff; font-family: monospace;">Period: <span style="color: var(--neon-glow-laser); letter-spacing: 1px;">----</span></h2>
             
-            <hr style="border:0; border-top: 1px solid rgba(255,0,51,0.25); margin: 25px 0;">
+            <hr style="border:0; border-top: 1px solid rgba(255,0,51,0.3); margin: 26px 0;">
 
-            <div style="font-size: 12px; margin-bottom: 15px; color: #bbb; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">TOP OPTIMAL TARGET CHANCES</div>
+            <div style="font-size: 12px; margin-bottom: 16px; color: #cccccc; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">OPTIMAL REALTIME PATTERN CALCULATOR</div>
             
             <div class="numbers-container">
                 <div class="num-block">
@@ -174,8 +174,8 @@
             </div>
         </div>
 
-        <div style="font-size:11px; color:#888; margin-top:25px; line-height: 1.6; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,0,51,0.2);">
-            ⚠️ <strong>Secure System Rule:</strong> Numbers calculated dynamically from 50 saved matrix blocks. No arbitrary filters applied. Trust pure trend analysis sequence streams.
+        <div style="font-size:11px; color:#999; margin-top:25px; line-height: 1.6; background: rgba(0,0,0,0.75); padding: 16px; border-radius: 10px; border: 1px solid rgba(255,0,51,0.22);">
+            ⚠️ <strong>Secure System Rule:</strong> Core algorithmic mapping traces sequential multi-layer trends without uniqueness limits or arbitrary block constraints.
         </div>
     </div>
 
@@ -215,7 +215,7 @@
         const socket = io();
         socket.on('predictionUpdate', (data) => {
             if(data && data.period) {
-                document.getElementById('periodId').innerHTML = `Period: <span style="color:var(--neon-glow); font-weight:800; font-size:26px;">${data.period}</span>`;
+                document.getElementById('periodId').innerHTML = `Period: <span style="color:var(--neon-glow-laser); font-weight:900; font-size:26px;">${data.period}</span>`;
                 
                 if (data.topNumbers && data.topNumbers.length >= 3) {
                     document.getElementById('num1').innerText = data.topNumbers[0].num;
