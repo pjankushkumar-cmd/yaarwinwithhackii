@@ -54,7 +54,6 @@
         if(!uid) { window.location.href = 'index.html'; }
         document.getElementById('uidDisplay').innerText = uid || "NOT_FOUND";
 
-        // Precise sync timer loops logic 
         setInterval(() => {
             const currentSeconds = new Date().getSeconds();
             const timeRemaining = 60 - currentSeconds;
@@ -71,10 +70,10 @@
                 
                 if(data.prediction === "BIG") {
                     trendEl.style.color = "var(--neon-red)";
-                    trendEl.style.textShadow = "0 0 30px rgba(255, 0, 51, 0.8)";
+                    trendEl.style.textShadow = "0 0 35px rgba(255, 0, 51, 0.95)";
                 } else if(data.prediction === "SMALL") {
                     trendEl.style.color = "var(--neon-cyan)";
-                    trendEl.style.textShadow = "0 0 30px rgba(0, 229, 255, 0.8)";
+                    trendEl.style.textShadow = "0 0 35px rgba(0, 229, 255, 0.95)";
                 }
 
                 if (data.topNumbers && data.topNumbers.length >= 2) {
