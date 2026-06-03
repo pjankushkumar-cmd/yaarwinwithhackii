@@ -101,10 +101,20 @@
             box-shadow: 0 25px 45px rgba(0,0,0,0.95);
         }
 
+        /* NEW: Big/Small Display Badge */
+        .trend-badge {
+            font-size: 44px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            margin: 15px 0;
+            text-shadow: 0 0 20px currentColor;
+            transition: color 0.4s ease;
+        }
+
         .numbers-container {
             display: flex;
             justify-content: center;
-            gap: 12px;
+            gap: 16px;
             margin-top: 22px;
         }
 
@@ -113,7 +123,7 @@
             border: 1px solid rgba(255, 0, 51, 0.55);
             color: #ffffff;
             padding: 22px 0;
-            width: 118px;
+            width: 140px; /* Width slightly adjusted for 2 blocks balance */
             border-radius: 12px;
             box-shadow: 0 0 25px rgba(255, 0, 51, 0.35);
             text-align: center;
@@ -156,9 +166,14 @@
             
             <hr style="border:0; border-top: 1px solid rgba(255,0,51,0.3); margin: 26px 0;">
 
-            <div style="font-size: 12px; margin-bottom: 16px; color: #cccccc; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">OPTIMAL REALTIME PATTERN CALCULATOR</div>
+            <!-- New Big/Small Dynamic Zone -->
+            <div style="font-size: 12px; margin-bottom: 5px; color: #cccccc; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">DETECTED BULK DIRECTION</div>
+            <div id="trendPrediction" class="trend-badge" style="color: #ffcc00;">LOADING...</div>
+
+            <div style="font-size: 12px; margin: 24px 0 12px 0; color: #cccccc; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">HIGH PROBABILITY TARGETS</div>
             
             <div class="numbers-container">
+                <!-- Kept exactly 2 blocks for the 2 optimized target numbers -->
                 <div class="num-block">
                     <span id="num1" class="num-main-val">-</span>
                     <span id="chance1" class="num-sub-lbl">0%</span>
@@ -166,10 +181,6 @@
                 <div class="num-block">
                     <span id="num2" class="num-main-val">-</span>
                     <span id="chance2" class="num-sub-lbl">0%</span>
-                </div>
-                <div class="num-block">
-                    <span id="num3" class="num-main-val">-</span>
-                    <span id="chance3" class="num-sub-lbl">0%</span>
                 </div>
             </div>
         </div>
@@ -215,17 +226,25 @@
         const socket = io();
         socket.on('predictionUpdate', (data) => {
             if(data && data.period) {
+                // Period Update
                 document.getElementById('periodId').innerHTML = `Period: <span style="color:var(--neon-glow-laser); font-weight:900; font-size:26px;">${data.period}</span>`;
                 
-                if (data.topNumbers && data.topNumbers.length >= 3) {
+                // Big/Small Trend Update & Color Dynamic Tuning
+                const trendEl = document.getElementById('trendPrediction');
+                trendEl.innerText = data.prediction;
+                if(data.prediction === "BIG") {
+                    trendEl.style.color = "#ff3300"; // Deep Neon Orange-Red for BIG
+                } else {
+                    trendEl.style.color = "#00e5ff"; // Electric Cyan-Blue for SMALL
+                }
+
+                // Injecting 2 Strongest Numbers according to new backend array length
+                if (data.topNumbers && data.topNumbers.length >= 2) {
                     document.getElementById('num1').innerText = data.topNumbers[0].num;
                     document.getElementById('chance1').innerText = data.topNumbers[0].chance + "%";
                     
                     document.getElementById('num2').innerText = data.topNumbers[1].num;
                     document.getElementById('chance2').innerText = data.topNumbers[1].chance + "%";
-                    
-                    document.getElementById('num3').innerText = data.topNumbers[2].num;
-                    document.getElementById('chance3').innerText = data.topNumbers[2].chance + "%";
                 }
             }
         });
