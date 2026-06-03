@@ -3,202 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Yaar Win with Hackii - Access Terminal</title>
+    <title>Yaar Win with Hackii - High-End Terminal</title>
     <style>
         :root {
-            --bg-dark-mainframe: #050001;
-            --bg-cyber-gradient: radial-gradient(circle at center, #1b0005 0%, #030001 100%);
-            --glass-card-matrix: rgba(15, 1, 4, 0.94);
-            --neon-red-mainframe: #ff0033;
-            --neon-glow-laser: #ff2c54;
-            --heavy-border-line: rgba(255, 0, 51, 0.38);
-            --text-high-contrast: #ffffff;
-            --text-secondary-dim: #cccccc;
+            --bg-dark: #030001;
+            --cyber-gradient: radial-gradient(circle at center, #1c0206 0%, #030001 100%);
+            --mainframe-card: rgba(14, 2, 4, 0.95);
+            --neon-red: #ff0033;
+            --neon-laser: #ff2c54;
+            --border-line: rgba(255, 0, 51, 0.35);
+            --text-main: #ffffff;
+            --text-dim: #cccccc;
         }
 
         body {
-            background: var(--bg-cyber-gradient);
-            color: var(--text-high-contrast);
-            font-family: 'Courier New', Courier, monospace, sans-serif;
+            background: var(--cyber-gradient);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
             min-height: 100vh;
             justify-content: center;
             align-items: center;
         }
 
         .container {
-            max-width: 450px;
+            max-width: 440px;
             width: 92%;
-            margin: 20px auto;
-            background: var(--glass-card-matrix);
-            padding: 38px 24px;
-            border-radius: 20px;
-            box-shadow: 0 0 65px rgba(255, 0, 51, 0.22), inset 0 0 20px rgba(255, 0, 51, 0.1);
-            border: 1px solid var(--heavy-border-line);
-            backdrop-filter: blur(22px);
+            background: var(--mainframe-card);
+            padding: 35px 25px;
+            border-radius: 24px;
+            box-shadow: 0 0 60px rgba(255, 0, 51, 0.25);
+            border: 1px solid var(--border-line);
+            backdrop-filter: blur(20px);
             box-sizing: border-box;
             text-align: center;
         }
 
         .hack-title {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 900;
-            margin: 4px 0;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 5px 0;
+            letter-spacing: 2px;
+            color: var(--neon-red);
+            text-shadow: 0 0 25px rgba(255, 0, 51, 0.8);
         }
 
         .sub-title {
-            font-size: 12px;
-            letter-spacing: 5px;
+            font-size: 11px;
+            letter-spacing: 4px;
             text-transform: uppercase;
             margin-bottom: 25px;
-            color: var(--text-secondary-dim);
-            font-weight: 900;
+            color: var(--text-dim);
         }
 
-        /* New User Interactive Guide Box */
-        .guide-box {
-            background: rgba(255, 0, 51, 0.05);
-            border: 1px dashed var(--neon-red-mainframe);
-            border-radius: 12px;
-            padding: 15px;
+        .action-box {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 16px;
             margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .guide-box h4 {
-            margin: 0 0 8px 0;
-            color: var(--neon-glow-laser);
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .guide-box ol {
-            margin: 0;
-            padding-left: 20px;
-            font-size: 12px;
-            color: #e0e0e0;
-            line-height: 1.6;
-        }
-
-        .notice-box {
-            background: rgba(5, 0, 1, 0.96);
-            padding: 22px;
-            border-radius: 18px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 0, 51, 0.25);
+            border: 1px solid rgba(255, 0, 51, 0.15);
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             margin-bottom: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid var(--heavy-border-line);
-            border-radius: 10px;
+            background: rgba(5, 1, 2, 0.9);
+            border: 1px solid var(--border-line);
+            border-radius: 12px;
             color: #fff;
-            font-family: monospace;
             box-sizing: border-box;
             text-align: center;
+            font-size: 15px;
             outline: none;
+            transition: all 0.3s ease;
         }
 
         input[type="text"]:focus {
-            border-color: var(--neon-glow-laser);
-            box-shadow: 0 0 12px rgba(255, 0, 51, 0.4);
+            border-color: var(--neon-laser);
+            box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
         }
 
         button {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: linear-gradient(135deg, #cc0029, #730014);
-            border: 1px solid var(--neon-glow-laser);
+            border: 1px solid var(--neon-laser);
             color: #fff;
             font-weight: bold;
-            border-radius: 10px;
+            font-size: 15px;
+            border-radius: 12px;
             cursor: pointer;
             letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(255, 0, 51, 0.3);
             transition: all 0.3s ease;
         }
 
         button:hover {
             background: linear-gradient(135deg, #ff0033, #99001a);
-            box-shadow: 0 6px 20px rgba(255, 0, 51, 0.5);
+            box-shadow: 0 0 20px rgba(255, 0, 51, 0.6);
         }
 
         .btn-reg {
-            background: linear-gradient(135deg, #ff0033, #b30022) !important;
-            box-shadow: 0 5px 18px rgba(255, 0, 51, 0.45) !important;
-            border: none !important;
-            margin-top: 8px;
+            background: linear-gradient(135deg, #ff0033, #b30022);
+            margin-bottom: 12px;
         }
 
-        .btn-tg {
-            background: transparent !important;
-            border: 1px dashed var(--neon-red-mainframe) !important;
-            color: var(--neon-glow-laser) !important;
-            box-shadow: none !important;
-            margin-top: 10px;
-        }
-
-        .btn-tg:hover {
-            background: rgba(255, 0, 51, 0.1) !important;
+        .msg-display {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffcc00;
+            min-height: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="hack-title" style="color: var(--neon-red-mainframe); text-shadow: 0 0 30px rgba(255,0,51,0.85);">⚡YAAR WIN WITH HACKII ⚡</h1>
-        <h2 class="sub-title">DEEP PATTERN DETECTION MAINFRAME</h2>
-        
-        <!-- New Member Dedicated Step Guide Panel -->
-        <div class="guide-box">
-            <h4>💡 NEW USER GUIDE (पढ़ें और सीखें):</h4>
-            <ol>
-                <li>नीचे दिए गए <strong>SECURE REGISTER LINK</strong> बटन पर क्लिक करके नया अकाउंट बनाएं।</li>
-                <li>रजिस्टर करने के बाद अपनी <strong>Game ID / UID</strong> को कॉपी करें।</li>
-                <li>कॉपी की हुई ID को नीचे बॉक्स में डालकर <strong>START TERMINAL NOW</strong> दबाएं।</li>
-            </ol>
-        </div>
 
-        <div class="notice-box">
-            <p style="font-size: 13px; color: #fff; margin: 0 0 14px 0; font-weight: 600; opacity: 0.9;">System Notice: Ensure your dynamic validation sequence account on YaarWin is verified:</p>
+    <div class="container" onclick="playWelcomeVoice()">
+        <h1 class="hack-title">YAAR WIN MAINFRAME</h1>
+        <h2 class="sub-title">PREMIUM PATTERN DETECTOR</h2>
+
+        <div class="action-box">
             <button class="btn-reg" onclick="window.location.href='https://4yaarwin.com/#/register?invitationCode=18426755757'">SECURE REGISTER LINK</button>
+            <p style="font-size: 12px; color: var(--text-dim); margin: 8px 0;">Naya account banakar apni UID niche box me dalein.</p>
         </div>
 
-        <p style="font-size: 13px; color: var(--text-secondary-dim); margin-bottom: 8px;">Provide your authorized mainframe key / Game ID below:</p>
-        <input type="text" id="uidInput" placeholder="Enter Game UID to Authenticate...">
-        <button onclick="verifyUID()">START TERMINAL NOW</button>
-        
-        <div id="msgBox" style="margin-top: 20px; font-size: 14px; font-weight: 600; min-height: 20px;"></div>
-        
-        <hr style="border: 0; border-top: 1px solid var(--heavy-border-line); margin: 30px 0;">
-        <p style="font-size: 12px; color: #8c8c8c; line-height: 1.5;">Require active authorization nodes or validity credentials? Contact central desk:</p>
-        <button class="btn-tg" onclick="window.location.href='https://t.me/hackii_sureshote'">REQUEST UID VERIFY / HELP</button>
+        <input type="text" id="uidInput" placeholder="Enter Game UID Key...">
+        <button onclick="verifyUID()">LAUNCH SERVER TERMINAL</button>
+
+        <div id="msgBox" class="msg-display">Tap anywhere to sync audio node.</div>
     </div>
 
     <script>
+        let voicePlayed = false;
+
+        // Link tap or interaction standard male AI voice logic
+        function playWelcomeVoice() {
+            if (voicePlayed) return;
+            
+            const text = "HACKII yaar win panel me apka swagat hai. Kripya apni new yaar win ki id box me dalker panel ko open kare";
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Fetching systems high quality male voice profiles
+            const voices = window.speechSynthesis.getVoices();
+            const maleVoice = voices.find(voice => voice.name.toLowerCase().includes('google hindi') || voice.name.toLowerCase().includes('male'));
+            
+            if (maleVoice) utterance.voice = maleVoice;
+            utterance.rate = 0.95; 
+            utterance.pitch = 1.0; 
+
+            window.speechSynthesis.speak(utterance);
+            voicePlayed = true;
+            document.getElementById('msgBox').innerText = "Audio Stream Operational.";
+        }
+
         async function verifyUID() {
             const uid = document.getElementById('uidInput').value.trim();
             const msgBox = document.getElementById('msgBox');
             
-            // If new user clicks start without entering details, show user friendly custom guidelines alert
             if(!uid) {
-                alert("🔴 ATTENTION NEW MEMBER!\n\n1. Sabse pehle upar 'SECURE REGISTER LINK' par click karke register karein.\n2. Register karke apni game ki new ID yahan box me dalein.\n3. Agar aapne new ID nahi banayi hai ya koi problem aa rahi hai, toh neeche diye gaye Telegram link par click karke message karein!");
-                
-                msgBox.innerText = "Error: Please register and enter your Game ID / UID!";
-                msgBox.style.color = "var(--neon-glow-laser)";
+                msgBox.innerText = "Error: Input box cannot be empty!";
                 return;
             }
-            
+
             try {
                 const res = await fetch('/api/user/verify', {
                     method: 'POST',
@@ -211,15 +180,17 @@
                     localStorage.setItem('user_uid', uid);
                     window.location.href = 'dashboard.html';
                 } else {
-                    // Friendly message if key is not yet active or dynamic check fails
-                    msgBox.innerText = data.message + " | New ID? Please message on Telegram.";
-                    msgBox.style.color = "var(--neon-glow-laser)";
+                    // Custom verification notice prompt rule injected here
+                    msgBox.innerText = "HACKII bhai se uid verification karbou";
+                    msgBox.style.color = "var(--neon-laser)";
                 }
             } catch (err) {
-                msgBox.innerText = "Network channel timeout. Re-establishing connection...";
-                msgBox.style.color = "var(--neon-glow-laser)";
+                msgBox.innerText = "Network transmission error.";
             }
         }
+
+        // Pre-load voices matrix
+        window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
     </script>
 </body>
 </html>
