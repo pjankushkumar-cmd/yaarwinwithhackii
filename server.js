@@ -27,7 +27,7 @@ app.get('/admin.html', (req, res) => {
 });
 
 let uids = {}; 
-let strictHistoryLog = []; // Core FIFO storage for exactly 50 matrix records
+let strictHistoryLog = []; 
 const DB_FILE_PATH = path.join(__dirname, 'history_database.json');
 
 function loadPermanentHistoryDatabase() {
@@ -61,7 +61,6 @@ function getCurrentWallclockPeriod() {
     return totalMinutes.toString().padStart(4, '0');
 }
 
-// Initial hydration placeholder with requested exact target distributions
 let globalPrediction = { 
     period: getCurrentWallclockPeriod(), 
     topNumbers: [
@@ -87,7 +86,7 @@ function calculateUpcomingPeriod(currentApiPeriodStr) {
 }
 
 // ==================================================================================
-// SUPREME ADVANCED ALL-PATTERN TRENDOLOGY & GAMING TREND ANALYSIS CORE
+// SUPREME REAL-TREND DETECTION ENGINE
 // ==================================================================================
 function executePatternAnalysis(upcomingPeriodStr) {
     let targetOneNum = 0;
@@ -95,73 +94,80 @@ function executePatternAnalysis(upcomingPeriodStr) {
     let targetThreeNum = 0;
 
     if (strictHistoryLog && strictHistoryLog.length > 0) {
-        // Stream tracing array extraction
-        let numericalStream = strictHistoryLog.map(g => parseInt(g.number || 0));
+        // API response se numeric data nikalna (Ensure absolute types)
+        let numericalStream = strictHistoryLog.map(g => parseInt(g.number !== undefined ? g.number : g.winNumber || 0));
         let weightCounter = Array(10).fill(0);
 
-        // PATTERN ANALYSIS LAYER 1: Deep Frequency Heatmap (50 Rounds Distribution)
+        // LAYER 1: Deep Frequency Heatmap with Heavy Recency Bias (Exponential Smoothing)
         numericalStream.forEach((num, index) => {
             if (num >= 0 && num <= 9) {
-                // Recent elements receive a exponential progression bonus
-                let recencyPremium = Math.max(10, 60 - index * 1.2);
+                // Index 0 sabse naya hai, toh usko sabse zyada weight milega
+                let recencyPremium = 120 * Math.exp(-0.06 * index);
                 weightCounter[num] += recencyPremium;
             }
         });
 
-        // Live recent focal points
         let lastNum = numericalStream[0]; 
         let secondLastNum = numericalStream[1] !== undefined ? numericalStream[1] : 5;
         let thirdLastNum = numericalStream[2] !== undefined ? numericalStream[2] : 0;
         let fourthLastNum = numericalStream[3] !== undefined ? numericalStream[3] : 7;
 
-        // PATTERN ANALYSIS LAYER 2: Sequential Repetition Index (Back-to-Back Joda / Series)
+        // LAYER 2: Markov Chain Transition Check (Pichli history me lastNum ke baad kya aata hai)
+        for (let i = 0; i < numericalStream.length - 1; i++) {
+            if (numericalStream[i + 1] === lastNum) {
+                let nextTargetInHistory = numericalStream[i];
+                // Agar itihaas me is number ke baad koi pattern repeat hua hai, weight add karo
+                weightCounter[nextTargetInHistory] += (40 * Math.exp(-0.04 * i));
+            }
+        }
+
+        // LAYER 3: Continuous Streak & Multi-Stack Dragon Blockers
         if (lastNum === secondLastNum) {
-            weightCounter[lastNum] += 55; // Multiplier triggers on continuous repeating block streak
+            weightCounter[lastNum] += 70; // Break or Continue optimization weight
         }
         if (lastNum === secondLastNum && secondLastNum === thirdLastNum) {
-            weightCounter[lastNum] += 70; // Dragon pattern multi-stack trigger
+            weightCounter[lastNum] += 90; // Extended Trend booster
         }
 
-        // PATTERN ANALYSIS LAYER 3: Alternating Mirror Wave Check (e.g. 2->4->2->4 or 5->1->5)
+        // LAYER 4: Mirror Wave Analysis (Alternating Sequence Detection)
         if (lastNum === thirdLastNum && lastNum !== secondLastNum) {
-            weightCounter[secondLastNum] += 45; 
+            weightCounter[secondLastNum] += 55; // Mirror bounce rule
         }
         if (secondLastNum === fourthLastNum && lastNum !== secondLastNum) {
-            weightCounter[lastNum] += 35;
+            weightCounter[lastNum] += 45;
         }
 
-        // PATTERN ANALYSIS LAYER 4: Delta Matrix Jump Vectors (Gaps Mapping)
+        // LAYER 5: Delta Vektor Jump & Arithmetic Modulo Mapping
         let primaryDeltaGap = Math.abs(lastNum - secondLastNum) || 1;
         let secondaryDeltaGap = Math.abs(secondLastNum - thirdLastNum) || 1;
         
-        weightCounter[(lastNum + primaryDeltaGap) % 10] += 25;
-        weightCounter[Math.abs(lastNum - secondaryDeltaGap) % 10] += 20;
-        weightCounter[(lastNum * 2 + 3) % 10] += 15; // Shifting algorithm offset
+        weightCounter[(lastNum + primaryDeltaGap) % 10] += 35;
+        weightCounter[Math.abs(lastNum - secondaryDeltaGap) % 10] += 25;
+        weightCounter[(lastNum * 2 + 3) % 10] += 15; 
 
-        // PATTERN ANALYSIS LAYER 5: Core Gaming Structural Trends Mapping
+        // Sorting the results to find highest weights
         let clusterScores = weightCounter.map((w, idx) => ({ num: idx, weight: w }));
         clusterScores.sort((a, b) => b.weight - a.weight);
 
-        // Extracts live trends organically (can produce duplicates if pattern indicates it)
         targetOneNum = clusterScores[0].num;
         targetTwoNum = clusterScores[1].num;
         targetThreeNum = clusterScores[2].num;
 
     } else {
-        // High level pure algebraic algorithm seeding backup if cache arrays aren't populated
+        // Clean high level mathematical fallback if data streaming drops
         let structuralFallbackSeed = parseInt(upcomingPeriodStr) || 9;
-        targetOneNum = (structuralFallbackSeed * 4) % 10;
-        targetTwoNum = (structuralFallbackSeed + 3) % 10;
-        targetThreeNum = Math.abs(structuralFallbackSeed - 4) % 10;
+        targetOneNum = (structuralFallbackSeed * 7 + 3) % 10;
+        targetTwoNum = (structuralFallbackSeed * 3 + 1) % 10;
+        targetThreeNum = Math.abs(structuralFallbackSeed * 2 - 5) % 10;
     }
 
-    // Pure Unchecked Structural Output targeting precise user specifications
+    // Exact output structure format matching updates
     globalPrediction = {
         period: upcomingPeriodStr,
         topNumbers: [
-            { num: targetOneNum, chance: 99 }, // Level One Top Detection Channel
-            { num: targetTwoNum, chance: 89 }, // Level Two Mid Detection Channel
-            { num: targetThreeNum, chance: 50 } // Level Three Neutral Base Cover
+            { num: targetOneNum, chance: 99 }, 
+            { num: targetTwoNum, chance: 89 }, 
+            { num: targetThreeNum, chance: 50 } 
         ],
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
@@ -180,6 +186,7 @@ async function updatePrediction() {
             timeout: 3500
         });
 
+        // Safe extraction checking key-pair objects
         if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
             const incomingApiList = response.data.data.list;
             
@@ -187,23 +194,17 @@ async function updatePrediction() {
                 strictHistoryLog = incomingApiList.slice(0, 50);
                 saveToPermanentDatabase();
             } else {
-                // DEEP REALTIME CONTINUOUS QUEUE IMPLEMENTATION (STRICT FIFO STRUCTURE)
-                // Reverse iteration maps oldest array incoming element to newest live stream updates
+                // REALTIME CONTINUOUS FIFO QUEUE UPDATE
                 for (let i = incomingApiList.length - 1; i >= 0; i--) {
                     let incomingRound = incomingApiList[i];
-                    
                     let alreadyLogged = strictHistoryLog.some(item => item.issueNumber === incomingRound.issueNumber);
                     
                     if (!alreadyLogged) {
-                        // Injects newly fetched live array elements into position zero
                         strictHistoryLog.unshift(incomingRound);
-                        
-                        // Strict Gate Threshold: If array length crosses 50 elements boundary
-                        // Oldest item is sliced out out of memory registers completely
                         if (strictHistoryLog.length > 50) {
                             strictHistoryLog = strictHistoryLog.slice(0, 50);
                         }
-                        console.log(`[CORE FIFO QUEUE REFRESH] Injected Frame: ${incomingRound.issueNumber}. Active Nodes Map: ${strictHistoryLog.length}`);
+                        console.log(`[REAL TREND REFRESH] Injected Issue: ${incomingRound.issueNumber} | Result Number: ${incomingRound.number || incomingRound.winNumber}`);
                     }
                 }
                 saveToPermanentDatabase(); 
@@ -216,11 +217,13 @@ async function updatePrediction() {
             executePatternAnalysis(calculateUpcomingPeriod(null));
         }
     } catch (networkError) {
+        console.log("[DETECTION ERROR] API core fetching timed out, calculating mathematical fallback.");
         executePatternAnalysis(calculateUpcomingPeriod(null));
     }
 }
 
-setInterval(updatePrediction, 2000);
+// Fixed polling loop time to sync without flooding API
+setInterval(updatePrediction, 2500);
 updatePrediction();
 
 app.post('/api/admin/uid', (req, res) => {
@@ -258,4 +261,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`[DETECTION CORE ONLINE] Server active on cluster port ${PORT}`));
+server.listen(PORT, () => console.log(`[DETECTION CORE ONLINE] Real Trend Server active on port ${PORT}`));
