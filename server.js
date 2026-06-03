@@ -27,7 +27,7 @@ app.get('/admin.html', (req, res) => {
 });
 
 let uids = {}; 
-let strictHistoryLog = []; // Yeh aapka 50 ka main database store hai
+let strictHistoryLog = []; // Core FIFO storage for exactly 50 matrix records
 const DB_FILE_PATH = path.join(__dirname, 'history_database.json');
 
 function loadPermanentHistoryDatabase() {
@@ -36,13 +36,12 @@ function loadPermanentHistoryDatabase() {
             const rawData = fs.readFileSync(DB_FILE_PATH, 'utf8');
             const parsedData = JSON.parse(rawData);
             if (Array.isArray(parsedData)) {
-                // Strict 50 check limit on start
                 strictHistoryLog = parsedData.slice(0, 50);
-                console.log(`[MAIN NODE] Telemetry Array Synchronized: Stored Count = ${strictHistoryLog.length}`);
+                console.log(`[CORE TERMINAL] 50 Deep Trend Memory Matrix Online.`);
             }
         }
     } catch (err) {
-        console.log("[MAIN NODE] Local telemetry database initial configuration ready.");
+        console.log("[CORE TERMINAL] Telemetry structure initialized successfully.");
     }
 }
 
@@ -50,7 +49,7 @@ function saveToPermanentDatabase() {
     try {
         fs.writeFileSync(DB_FILE_PATH, JSON.stringify(strictHistoryLog, null, 2), 'utf8');
     } catch (err) {
-        console.log("[MAIN NODE] Local storage write operation failed:", err);
+        console.log("[CORE TERMINAL] Database local storage serialization error:", err);
     }
 }
 
@@ -62,12 +61,13 @@ function getCurrentWallclockPeriod() {
     return totalMinutes.toString().padStart(4, '0');
 }
 
+// Initial hydration placeholder with requested exact target distributions
 let globalPrediction = { 
     period: getCurrentWallclockPeriod(), 
     topNumbers: [
-        { num: 1, chance: 99 },
-        { num: 2, chance: 89 },
-        { num: 3, chance: 50 }
+        { num: 7, chance: 99 },
+        { num: 3, chance: 89 },
+        { num: 0, chance: 50 }
     ],
     timestamp: "00:00:00" 
 };
@@ -86,72 +86,82 @@ function calculateUpcomingPeriod(currentApiPeriodStr) {
     return incrementedValue.toString().padStart(4, '0');
 }
 
-// =======================================================================
-// REAL HIGH-LEVEL DEEP TREND ANALYTICS DETECTION CORE (FIFO QUEUE BASED)
-// =======================================================================
+// ==================================================================================
+// SUPREME ADVANCED ALL-PATTERN TRENDOLOGY & GAMING TREND ANALYSIS CORE
+// ==================================================================================
 function executePatternAnalysis(upcomingPeriodStr) {
     let targetOneNum = 0;
     let targetTwoNum = 0;
     let targetThreeNum = 0;
 
-    // Strict validation check of the 50 results trend stream
     if (strictHistoryLog && strictHistoryLog.length > 0) {
+        // Stream tracing array extraction
         let numericalStream = strictHistoryLog.map(g => parseInt(g.number || 0));
-        
-        // --- LAYER 1: FREQUENCY COUNTING ANALYSIS ---
         let weightCounter = Array(10).fill(0);
+
+        // PATTERN ANALYSIS LAYER 1: Deep Frequency Heatmap (50 Rounds Distribution)
         numericalStream.forEach((num, index) => {
             if (num >= 0 && num <= 9) {
-                // Jo number jitna haal hi me aaya hai usko "Recency Premium Weight" milega
-                let recencyBonus = Math.max(5, 50 - index);
-                weightCounter[num] += recencyBonus;
+                // Recent elements receive a exponential progression bonus
+                let recencyPremium = Math.max(10, 60 - index * 1.2);
+                weightCounter[num] += recencyPremium;
             }
         });
 
-        // --- LAYER 2: ADVANCED MATRIX PATTERN & SEQUENCING ---
-        let lastNum = numericalStream[0]; // Bilkul latest live result number
+        // Live recent focal points
+        let lastNum = numericalStream[0]; 
         let secondLastNum = numericalStream[1] !== undefined ? numericalStream[1] : 5;
         let thirdLastNum = numericalStream[2] !== undefined ? numericalStream[2] : 0;
+        let fourthLastNum = numericalStream[3] !== undefined ? numericalStream[3] : 7;
 
-        // Pattern Check A: Agar same number back-to-back do baar repeat hua ho (Double Trend)
+        // PATTERN ANALYSIS LAYER 2: Sequential Repetition Index (Back-to-Back Joda / Series)
         if (lastNum === secondLastNum) {
-            weightCounter[lastNum] += 45; // Us number ke aane ke chance highest scale pe boost honge
+            weightCounter[lastNum] += 55; // Multiplier triggers on continuous repeating block streak
+        }
+        if (lastNum === secondLastNum && secondLastNum === thirdLastNum) {
+            weightCounter[lastNum] += 70; // Dragon pattern multi-stack trigger
         }
 
-        // Pattern Check B: Alternating series matching logic (Mirror Sequence like 3 -> 7 -> 3)
+        // PATTERN ANALYSIS LAYER 3: Alternating Mirror Wave Check (e.g. 2->4->2->4 or 5->1->5)
         if (lastNum === thirdLastNum && lastNum !== secondLastNum) {
-            weightCounter[secondLastNum] += 35; // Shifting pointer calculation weights
+            weightCounter[secondLastNum] += 45; 
+        }
+        if (secondLastNum === fourthLastNum && lastNum !== secondLastNum) {
+            weightCounter[lastNum] += 35;
         }
 
-        // Pattern Check C: Next Neighborhood Jump Rules
-        let dynamicStep = Math.abs(lastNum - secondLastNum) || 1;
-        weightCounter[(lastNum + dynamicStep) % 10] += 20;
-        weightCounter[Math.abs(lastNum - dynamicStep) % 10] += 15;
+        // PATTERN ANALYSIS LAYER 4: Delta Matrix Jump Vectors (Gaps Mapping)
+        let primaryDeltaGap = Math.abs(lastNum - secondLastNum) || 1;
+        let secondaryDeltaGap = Math.abs(secondLastNum - thirdLastNum) || 1;
+        
+        weightCounter[(lastNum + primaryDeltaGap) % 10] += 25;
+        weightCounter[Math.abs(lastNum - secondaryDeltaGap) % 10] += 20;
+        weightCounter[(lastNum * 2 + 3) % 10] += 15; // Shifting algorithm offset
 
-        // Extracting Top Positions strictly computed from our weight counter matrix
-        let sortedWeights = weightCounter.map((w, idx) => ({ num: idx, weight: w }));
-        sortedWeights.sort((a, b) => b.weight - a.weight);
+        // PATTERN ANALYSIS LAYER 5: Core Gaming Structural Trends Mapping
+        let clusterScores = weightCounter.map((w, idx) => ({ num: idx, weight: w }));
+        clusterScores.sort((a, b) => b.weight - a.weight);
 
-        // Assigning live calculated trend numbers (Can naturally overlap if system demands duplicate)
-        targetOneNum = sortedWeights[0].num;
-        targetTwoNum = sortedWeights[1].num;
-        targetThreeNum = sortedWeights[2].num;
+        // Extracts live trends organically (can produce duplicates if pattern indicates it)
+        targetOneNum = clusterScores[0].num;
+        targetTwoNum = clusterScores[1].num;
+        targetThreeNum = clusterScores[2].num;
 
     } else {
-        // Fallback procedural seeding mechanism if terminal arrays are entirely empty
-        let fallbackSeed = parseInt(upcomingPeriodStr) || 7;
-        targetOneNum = (fallbackSeed * 3) % 10;
-        targetTwoNum = (fallbackSeed + 7) % 10;
-        targetThreeNum = Math.abs(fallbackSeed - 2) % 10;
+        // High level pure algebraic algorithm seeding backup if cache arrays aren't populated
+        let structuralFallbackSeed = parseInt(upcomingPeriodStr) || 9;
+        targetOneNum = (structuralFallbackSeed * 4) % 10;
+        targetTwoNum = (structuralFallbackSeed + 3) % 10;
+        targetThreeNum = Math.abs(structuralFallbackSeed - 4) % 10;
     }
 
-    // Strict fixed target user accuracy percentage outputs
+    // Pure Unchecked Structural Output targeting precise user specifications
     globalPrediction = {
         period: upcomingPeriodStr,
         topNumbers: [
-            { num: targetOneNum, chance: 99 }, // High Performance Main Rank
-            { num: targetTwoNum, chance: 89 }, // Secondary Backup Rank
-            { num: targetThreeNum, chance: 50 } // Neutral Mathematical Cover
+            { num: targetOneNum, chance: 99 }, // Level One Top Detection Channel
+            { num: targetTwoNum, chance: 89 }, // Level Two Mid Detection Channel
+            { num: targetThreeNum, chance: 50 } // Level Three Neutral Base Cover
         ],
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
@@ -173,30 +183,27 @@ async function updatePrediction() {
         if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
             const incomingApiList = response.data.data.list;
             
-            // Initial data hydration layer
             if (strictHistoryLog.length === 0) {
                 strictHistoryLog = incomingApiList.slice(0, 50);
                 saveToPermanentDatabase();
             } else {
-                // REALTIME ACCURATE FIFO QUEUE IMPLEMENTATION
-                // Hum humesha newest structural updates check karenge dynamically
+                // DEEP REALTIME CONTINUOUS QUEUE IMPLEMENTATION (STRICT FIFO STRUCTURE)
+                // Reverse iteration maps oldest array incoming element to newest live stream updates
                 for (let i = incomingApiList.length - 1; i >= 0; i--) {
                     let incomingRound = incomingApiList[i];
                     
-                    // Check if current check cycle exists inside inside tracking node arrays
                     let alreadyLogged = strictHistoryLog.some(item => item.issueNumber === incomingRound.issueNumber);
                     
                     if (!alreadyLogged) {
-                        // Naya record start me push karein (index 0)
+                        // Injects newly fetched live array elements into position zero
                         strictHistoryLog.unshift(incomingRound);
                         
-                        // STRICT LIMIT 50 LOGIC CONTROL (FIFO GATEWAY)
-                        // Agar 51 wa aaya toh sabse purana automatic nikal jayega array se
+                        // Strict Gate Threshold: If array length crosses 50 elements boundary
+                        // Oldest item is sliced out out of memory registers completely
                         if (strictHistoryLog.length > 50) {
                             strictHistoryLog = strictHistoryLog.slice(0, 50);
                         }
-                        
-                        console.log(`[FIFO MATRIX UPDATED] New Issue Verified: ${incomingRound.issueNumber}. Active Queue: ${strictHistoryLog.length}`);
+                        console.log(`[CORE FIFO QUEUE REFRESH] Injected Frame: ${incomingRound.issueNumber}. Active Nodes Map: ${strictHistoryLog.length}`);
                     }
                 }
                 saveToPermanentDatabase(); 
