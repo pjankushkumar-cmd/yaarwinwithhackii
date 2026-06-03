@@ -3,210 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HACKII Premium Control - Access Terminal</title>
-    <style>
-        :root {
-            --bg-dark: #030001;
-            --cyber-gradient: radial-gradient(circle at center, #1c0206 0%, #030001 100%);
-            --mainframe-card: rgba(12, 1, 3, 0.96);
-            --neon-red: #ff0033;
-            --neon-laser: #ff2c54;
-            --telegram-blue: #0088cc;
-            --border-line: rgba(255, 0, 51, 0.35);
-            --text-main: #ffffff;
-            --text-dim: #cccccc;
-        }
-
-        body {
-            background: var(--cyber-gradient);
-            color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            min-height: 100vh;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            max-width: 440px;
-            width: 92%;
-            background: var(--mainframe-card);
-            padding: 35px 25px;
-            border-radius: 24px;
-            box-shadow: 0 0 60px rgba(255, 0, 51, 0.3);
-            border: 1px solid var(--border-line);
-            backdrop-filter: blur(20px);
-            box-sizing: border-box;
-            text-align: center;
-        }
-
-        /* Hackii name prominently styled on main screen */
-        .brand-name {
-            font-size: 42px;
-            font-weight: 900;
-            margin: 0;
-            letter-spacing: 5px;
-            color: var(--neon-red);
-            text-shadow: 0 0 30px rgba(255, 0, 51, 0.95);
-        }
-
-        .sub-title {
-            font-size: 11px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin: 5px 0 25px 0;
-            color: var(--text-dim);
-        }
-
-        .action-box {
-            background: rgba(0, 0, 0, 0.85);
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 0, 51, 0.15);
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 16px;
-            margin-bottom: 15px;
-            background: rgba(5, 1, 2, 0.9);
-            border: 1px solid var(--border-line);
-            border-radius: 12px;
-            color: #fff;
-            box-sizing: border-box;
-            text-align: center;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        input[type="text"]:focus {
-            border-color: var(--neon-laser);
-            box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
-        }
-
-        button {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #cc0029, #730014);
-            border: 1px solid var(--neon-laser);
-            color: #fff;
-            font-weight: bold;
-            font-size: 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            background: linear-gradient(135deg, #ff0033, #99001a);
-            box-shadow: 0 0 20px rgba(255, 0, 51, 0.6);
-        }
-
-        .btn-reg {
-            background: linear-gradient(135deg, #ff0033, #b30022);
-            margin-bottom: 12px;
-        }
-
-        /* Restored Telegram Support Button Matrix */
-        .btn-tg {
-            background: linear-gradient(135deg, #0088cc, #005580);
-            border: 1px solid #00e5ff;
-            margin-top: 15px;
-            box-shadow: 0 5px 15px rgba(0, 136, 204, 0.3);
-        }
-
-        .btn-tg:hover {
-            background: linear-gradient(135deg, #00a2f2, #0077b5);
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
-        }
-
-        .msg-display {
-            margin-top: 15px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #ffcc00;
-            min-height: 20px;
-        }
-    </style>
+    <title>HACKII - Cyber Access Gateway</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body onload="initVoiceStream()">
+<body>
 
-    <div class="container" onclick="playProfessionalMaleVoice()">
-        <h1 class="brand-name">HACKII</h1>
-        <h2 class="sub-title">YAAR WIN PREDICTION PANEL</h2>
+    <div class="container">
+        <h1 class="brand-title">HACKII</h1>
+        <h2 class="sub-title">YAAR WIN PREMIUM MAINFRAME</h2>
 
-        <div class="action-box">
-            <button class="btn-reg" onclick="window.location.href='https://4yaarwin.com/#/register?invitationCode=18426755757'">SECURE REGISTER LINK</button>
-            <p style="font-size: 12px; color: var(--text-dim); margin: 8px 0;">Naya account banakar apni UID niche box me dalein.</p>
+        <div class="glass-card">
+            <button class="btn-reg" onclick="window.location.href='https://4yaarwin.com/#/register?invitationCode=18426755757'">
+                🛡️ SECURE REGISTER LINK
+            </button>
+            <p class="helper-text">Naya account banakar apni official UID niche grid me fill karein.</p>
         </div>
 
-        <input type="text" id="uidInput" placeholder="Enter Game UID Key...">
-        <button onclick="verifyUID()">LAUNCH SERVER TERMINAL</button>
+        <div class="input-container">
+            <input type="text" id="uidInput" placeholder="ENTER GAME UID KEY...">
+            <span class="input-glow"></span>
+        </div>
 
-        <button class="btn-tg" onclick="window.location.href='https://t.me/hackii_sureshote'">💬 TELEGRAM LIVE SUPPORT</button>
+        <button class="btn-primary" onclick="verifyUID()">LAUNCH SERVER INTERFACE</button>
 
-        <div id="msgBox" class="msg-display">Tap anywhere to sync professional audio node.</div>
+        <button class="btn-tg" onclick="window.location.href='https://t.me/hackii_sureshote'">
+            💬 TELEGRAM LIVE SUPPORT
+        </button>
+
+        <div id="msgBox" class="msg-display">System Status: Secure Node Ready</div>
     </div>
 
     <script>
-        let voicePlayed = false;
-
-        function initVoiceStream() {
-            // Pre-trigger to register local engine streams
-            if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-                speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
-            }
-        }
-
-        // Advanced Professional Hindi Male Audio Sequence Engine
-        function playProfessionalMaleVoice() {
-            if (voicePlayed) return;
-            
-            const welcomeText = "HACKII yaar win panel me aapka swagat hai. Kripya apni naye yaar win ki id box me dalkar panel ko open kare.";
-            const utterance = new SpeechSynthesisUtterance(welcomeText);
-            
-            // Querying advanced professional speech engines profile data
-            const voices = window.speechSynthesis.getVoices();
-            
-            // Priority ordering system for high-quality professional Hindi Male engines
-            let selectedVoice = voices.find(voice => 
-                voice.lang.includes('hi') && 
-                (voice.name.toLowerCase().includes('google') || voice.name.toLowerCase().includes('male'))
-            );
-
-            // Fallback strategy if custom engine not cached on target system device
-            if (!selectedVoice) {
-                selectedVoice = voices.find(voice => voice.lang.includes('hi'));
-            }
-            
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-            }
-
-            // Calibrating professional speech factors
-            utterance.rate = 0.90;  // Real human delivery speed matching rule
-            utterance.pitch = 0.95; // Deep male clear structural tone
-
-            window.speechSynthesis.speak(utterance);
-            voicePlayed = true;
-            document.getElementById('msgBox').innerText = "Premium Audio Stream Operational.";
-            document.getElementById('msgBox').style.color = "#00ff66";
-        }
-
         async function verifyUID() {
             const uid = document.getElementById('uidInput').value.trim();
             const msgBox = document.getElementById('msgBox');
             
             if(!uid) {
                 msgBox.innerText = "Error: Input box cannot be empty!";
-                msgBox.style.color = "var(--neon-laser)";
+                msgBox.style.color = "var(--neon-red)";
                 return;
             }
+
+            msgBox.innerText = "Connecting to authorization node...";
+            msgBox.style.color = "var(--gold)";
 
             try {
                 const res = await fetch('/api/user/verify', {
@@ -220,11 +59,13 @@
                     localStorage.setItem('user_uid', uid);
                     window.location.href = 'dashboard.html';
                 } else {
+                    // Accurate system instruction response prompt
                     msgBox.innerText = "HACKII bhai se uid verification karbou";
-                    msgBox.style.color = "var(--neon-laser)";
+                    msgBox.style.color = "var(--neon-red)";
                 }
             } catch (err) {
-                msgBox.innerText = "Network transmission timeout error.";
+                msgBox.innerText = "Network link failure. Re-trying node allocation...";
+                msgBox.style.color = "var(--neon-red)";
             }
         }
     </script>
