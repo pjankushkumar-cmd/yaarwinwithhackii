@@ -30,6 +30,7 @@ let uids = {};
 let strictHistoryLog = []; 
 const DB_FILE_PATH = path.join(__dirname, 'history_database.json');
 
+// Rotating Proxy Layer to bypass Render server IP blocks
 const PUBLIC_PROXY_POOL = [
     "http://51.79.50.31:80",
     "http://185.162.228.188:80",
@@ -70,53 +71,54 @@ function getCurrentWallclockPeriod() {
     return totalMinutes.toString().padStart(4, '0');
 }
 
-// Fixed multi-variable fallback state to avoid any frontend layout 'undefined' bugs
 let globalPrediction = { 
     period: getCurrentWallclockPeriod(), 
     topNumbers: [
-        { num: 7, chance: 99 },
-        { num: 2, chance: 89 },
-        { num: 5, chance: 50 }
+        { num: 1, chance: 99 },
+        { num: 6, chance: 89 },
+        { num: 8, chance: 50 }
     ],
-    trend: "BIG",       // Variable match 1
-    trendText: "BIG",   // Variable match 2
-    output: "BIG",      // Variable match 3
     timestamp: "00:00:00" 
 };
 
 const GAME_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=50&gameId=1";
-const RNG_EXTERNAL_URL = "https://numbergenerator.org/randomnumbergenerator/0-9";
 
 // ==================================================================================
-// STRICT UPCOMING PERIOD ENGINE (+1 CALCULATOR)
+// STRICT UPCOMING PERIOD CALCULATOR (+1 ENGINE)
 // ==================================================================================
 function calculateUpcomingPeriod(currentApiPeriodStr) {
     let targetFourDigits = "";
     if (currentApiPeriodStr && currentApiPeriodStr.length >= 4) {
+        // Last 4 digits ko extract karna target trend ke liye
         targetFourDigits = currentApiPeriodStr.slice(-4);
     } else {
         targetFourDigits = getCurrentWallclockPeriod();
     }
     
-    // Incrementing strictly by +1 for the next upcoming period display
+    // Incrementing by +1 strictly for the upcoming period display
     let incrementedValue = parseInt(targetFourDigits) + 1;
     if (incrementedValue > 9999) { incrementedValue = 0; }
     return incrementedValue.toString().padStart(4, '0');
 }
 
 // ==================================================================================
-// ADVANCED TREND MATRIX WITH BIG/SMALL BUSINESS RULES
+// ADVANCED TREND ENGINE FOR UPCOMING PREDICTIONS
 // ==================================================================================
 function executePatternAnalysis(upcomingPeriodStr) {
-    let targetOneNum = 7; 
-    let targetTwoNum = 2;
-    let targetThreeNum = 5;
+    let targetOneNum = 0;
+    let targetTwoNum = 0;
+    let targetThreeNum = 0;
 
     if (strictHistoryLog && strictHistoryLog.length > 0) {
-        let numericalStream = strictHistoryLog.map(g => parseInt(g.number || 0));
+        let numericalStream = strictHistoryLog.map(g => {
+            if (g.number !== undefined && g.number !== null) return parseInt(g.number);
+            if (g.winNumber !== undefined && g.winNumber !== null) return parseInt(g.winNumber);
+            return 0;
+        });
+        
         let weightCounter = Array(10).fill(0);
 
-        // LAYER 1: Recency Weight Matrix
+        // LAYER 1: Exponential Recency Decay Matrix
         numericalStream.forEach((num, index) => {
             if (num >= 0 && num <= 9) {
                 let recencyPremium = 160 * Math.exp(-0.05 * index);
@@ -129,28 +131,29 @@ function executePatternAnalysis(upcomingPeriodStr) {
         let thirdLastNum = numericalStream[2] !== undefined ? numericalStream[2] : 0;
         let fourthLastNum = numericalStream[3] !== undefined ? numericalStream[3] : 7;
 
-        // LAYER 2: Markov Target Chains
+        // LAYER 2: Markov Chain Probability (Next Number Predictor)
         for (let i = 0; i < numericalStream.length - 1; i++) {
             if (numericalStream[i + 1] === lastNum) {
                 let nextTargetInHistory = numericalStream[i];
-                weightCounter[nextTargetInHistory] += (65 * Math.exp(-0.03 * i));
+                weightCounter[nextTargetInHistory] += (60 * Math.exp(-0.03 * i));
             }
         }
 
-        // LAYER 3: Streaks
-        if (lastNum === secondLastNum) weightCounter[lastNum] += 95;
-        if (lastNum === secondLastNum && secondLastNum === thirdLastNum) weightCounter[lastNum] += 140;
+        // LAYER 3: Streak / Dragon Pattern Weights
+        if (lastNum === secondLastNum) weightCounter[lastNum] += 90; 
+        if (lastNum === secondLastNum && secondLastNum === thirdLastNum) weightCounter[lastNum] += 130; 
 
-        // LAYER 4: Wave Shifts
-        if (lastNum === thirdLastNum && lastNum !== secondLastNum) weightCounter[secondLastNum] += 75;
-        if (secondLastNum === fourthLastNum && lastNum !== secondLastNum) weightCounter[lastNum] += 65;
+        // LAYER 4: Alternate Mirror Wave Sequences
+        if (lastNum === thirdLastNum && lastNum !== secondLastNum) weightCounter[secondLastNum] += 70; 
+        if (secondLastNum === fourthLastNum && lastNum !== secondLastNum) weightCounter[lastNum] += 60;
 
-        // LAYER 5: Upcoming Period Matrix Binding
-        let periodNumericalValue = parseInt(upcomingPeriodStr) || 0;
-        let gapJumpSeed = Math.abs(lastNum - secondLastNum) || 1;
+        // LAYER 5: Delta Jump Vectors (Modulo Step Math)
+        let primaryDeltaGap = Math.abs(lastNum - secondLastNum) || 1;
+        let secondaryDeltaGap = Math.abs(secondLastNum - thirdLastNum) || 1;
         
-        weightCounter[(lastNum + gapJumpSeed) % 10] += 55;
-        weightCounter[(periodNumericalValue + lastNum) % 10] += 45;
+        weightCounter[(lastNum + primaryDeltaGap) % 10] += 50;
+        weightCounter[Math.abs(lastNum - secondaryDeltaGap) % 10] += 40;
+        weightCounter[(parseInt(upcomingPeriodStr) + lastNum) % 10] += 30; // Direct Period binding index
 
         let clusterScores = weightCounter.map((w, idx) => ({ num: idx, weight: w }));
         clusterScores.sort((a, b) => b.weight - a.weight);
@@ -160,19 +163,14 @@ function executePatternAnalysis(upcomingPeriodStr) {
         targetThreeNum = clusterScores[2].num;
 
     } else {
+        // High level pure algebraic algorithm seeding backup if cache arrays aren't populated
         let structuralFallbackSeed = parseInt(upcomingPeriodStr) || 9;
         targetOneNum = (structuralFallbackSeed * 7 + 3) % 10;
         targetTwoNum = (structuralFallbackSeed * 3 + 1) % 10;
         targetThreeNum = Math.abs(structuralFallbackSeed * 2 - 5) % 10;
     }
 
-    // STRICT GAME RULE: Big (5 to 9) & Small (0 to 4) Mapping
-    let finalTrendTag = "SMALL";
-    if (targetOneNum >= 5 && targetOneNum <= 9) {
-        finalTrendTag = "BIG";
-    }
-
-    // Packing multiple redundant parameters to fit any front-end UI script perfectly
+    // Assigning variables to the strict upcoming period structure
     globalPrediction = {
         period: upcomingPeriodStr, 
         topNumbers: [
@@ -180,9 +178,6 @@ function executePatternAnalysis(upcomingPeriodStr) {
             { num: targetTwoNum, chance: 89 }, 
             { num: targetThreeNum, chance: 50 } 
         ],
-        trend: finalTrendTag,        
-        trendText: finalTrendTag,    
-        output: finalTrendTag,       
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
 
@@ -190,39 +185,7 @@ function executePatternAnalysis(upcomingPeriodStr) {
 }
 
 // ==================================================================================
-// CRASH-PROOF REGEX PARSER FOR NUMBERGENERATOR.ORG
-// ==================================================================================
-async function fetchNumberFromGenerator() {
-    try {
-        const response = await axios.get(RNG_EXTERNAL_URL, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-            },
-            timeout: 4000
-        });
-
-        const htmlData = response.data;
-        const unsqMatch = htmlData.match(/id=["']unsq["'][^>]*>([\s\S]*?)<\/div>/i);
-        let extractedText = unsqMatch ? unsqMatch[1].trim() : "";
-        
-        if (!extractedText) {
-            const boxMatch = htmlData.match(/class=["']result-box["'][^>]*>([\s\S]*?)<\/div>/i);
-            extractedText = boxMatch ? boxMatch[1].trim() : "";
-        }
-
-        let parsedNum = parseInt(extractedText.replace(/[^0-9]/g, ''));
-        if (!isNaN(parsedNum) && parsedNum >= 0 && parsedNum <= 9) {
-            return parsedNum;
-        }
-        throw new Error("HTML structure parse failed");
-    } catch (err) {
-        return Math.floor(Math.random() * 10);
-    }
-}
-
-// ==================================================================================
-// POLL ROUTINE DISTRIBUTOR ENGINE
+// DATA FETCHING ENGINE (BYPASS + UPDATE)
 // ==================================================================================
 async function updatePrediction() {
     let axiosConfig = {
@@ -232,55 +195,67 @@ async function updatePrediction() {
             'Referer': 'https://ar-lottery01.com/',
             'Origin': 'https://ar-lottery01.com'
         },
-        timeout: 4000
+        timeout: 5000
     };
 
     if (currentProxyIndex > 0) {
         let selectedProxy = PUBLIC_PROXY_POOL[currentProxyIndex % PUBLIC_PROXY_POOL.length];
         let urlParts = selectedProxy.replace("http://", "").split(":");
-        axiosConfig.proxy = { host: urlParts[0], port: parseInt(urlParts[1]) };
+        axiosConfig.proxy = {
+            host: urlParts[0],
+            port: parseInt(urlParts[1])
+        };
     }
-
-    let detectedPeriodStr = "";
 
     try {
         const response = await axios.get(GAME_API, axiosConfig);
+
         if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
-            detectedPeriodStr = response.data.data.list[0].issueNumber.toString();
+            const incomingApiList = response.data.data.list;
+            
+            if (strictHistoryLog.length === 0) {
+                strictHistoryLog = incomingApiList.slice(0, 50);
+                saveToPermanentDatabase();
+            } else {
+                for (let i = incomingApiList.length - 1; i >= 0; i--) {
+                    let incomingRound = incomingApiList[i];
+                    let alreadyLogged = strictHistoryLog.some(item => item.issueNumber === incomingRound.issueNumber);
+                    
+                    if (!alreadyLogged) {
+                        strictHistoryLog.unshift(incomingRound);
+                        if (strictHistoryLog.length > 50) strictHistoryLog = strictHistoryLog.slice(0, 50);
+                        console.log(`[REAL TREND REFRESH] Injected Issue: ${incomingRound.issueNumber}`);
+                    }
+                }
+                saveToPermanentDatabase(); 
+            }
+
+            // Current raw issue extracted from live stream
+            let rawApiPeriodStr = strictHistoryLog[0].issueNumber.toString();
+            
+            // STRICT CORE LOGIC: Dynamic +1 addition to push calculation towards UPCOMING period
+            let safeUpcomingPeriod = calculateUpcomingPeriod(rawApiPeriodStr);
+            
+            // Running evaluation matrix on upcoming period code
+            executePatternAnalysis(safeUpcomingPeriod);
             currentProxyIndex = 0; 
         } else {
-            throw new Error("Data read exception");
+            throw new Error("Data stream parsing error.");
         }
     } catch (networkError) {
-        currentProxyIndex++;
+        console.log(`[TREND FALLBACK LOGIC] Working via trend memory matrix cache.`);
+        currentProxyIndex++; 
+
         if (strictHistoryLog.length > 0) {
-            detectedPeriodStr = strictHistoryLog[0].issueNumber.toString();
+            let lastKnownPeriod = strictHistoryLog[0].issueNumber.toString();
+            executePatternAnalysis(calculateUpcomingPeriod(lastKnownPeriod));
         } else {
-            detectedPeriodStr = getCurrentWallclockPeriod();
+            executePatternAnalysis(calculateUpcomingPeriod(null));
         }
     }
-
-    let liveScrapedRngResult = await fetchNumberFromGenerator();
-
-    let isAlreadyLogged = strictHistoryLog.some(item => item.issueNumber === detectedPeriodStr);
-    if (!isAlreadyLogged) {
-        strictHistoryLog.unshift({
-            issueNumber: detectedPeriodStr,
-            number: liveScrapedRngResult
-        });
-        if (strictHistoryLog.length > 50) {
-            strictHistoryLog = strictHistoryLog.slice(0, 50);
-        }
-        console.log(`[SYSTEM LOG] Synchronized Period: ${detectedPeriodStr} | Scraped Output: ${liveScrapedRngResult}`);
-        saveToPermanentDatabase();
-    }
-
-    // Dynamic addition of +1 strictly mapping towards the upcoming round calculation
-    let safeUpcomingPeriod = calculateUpcomingPeriod(detectedPeriodStr);
-    executePatternAnalysis(safeUpcomingPeriod);
 }
 
-// Continuous polling interval loop
+// Set continuous interval loop
 setInterval(updatePrediction, 2500);
 updatePrediction();
 
@@ -319,4 +294,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 10000;
-server.listen(PORT, () => console.log(`[MATRIX SUPREME V4 ONLINE] Ready for clean deployment on port ${PORT}`));
+server.listen(PORT, () => console.log(`[UPCOMING ENGINE ONLINE] Server active on port ${PORT}`));
