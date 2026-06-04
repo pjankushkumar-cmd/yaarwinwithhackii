@@ -70,7 +70,7 @@ function getCurrentWallclockPeriod() {
     return totalMinutes.toString().padStart(4, '0');
 }
 
-// Initial default state configuration to completely eliminate 'undefined' text
+// Fixed multi-variable fallback state to avoid any frontend layout 'undefined' bugs
 let globalPrediction = { 
     period: getCurrentWallclockPeriod(), 
     topNumbers: [
@@ -78,13 +78,18 @@ let globalPrediction = {
         { num: 2, chance: 89 },
         { num: 5, chance: 50 }
     ],
-    trendText: "BIG", // Default safe fallback state
+    trend: "BIG",       // Variable match 1
+    trendText: "BIG",   // Variable match 2
+    output: "BIG",      // Variable match 3
     timestamp: "00:00:00" 
 };
 
 const GAME_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=50&gameId=1";
 const RNG_EXTERNAL_URL = "https://numbergenerator.org/randomnumbergenerator/0-9";
 
+// ==================================================================================
+// STRICT UPCOMING PERIOD ENGINE (+1 CALCULATOR)
+// ==================================================================================
 function calculateUpcomingPeriod(currentApiPeriodStr) {
     let targetFourDigits = "";
     if (currentApiPeriodStr && currentApiPeriodStr.length >= 4) {
@@ -92,16 +97,18 @@ function calculateUpcomingPeriod(currentApiPeriodStr) {
     } else {
         targetFourDigits = getCurrentWallclockPeriod();
     }
+    
+    // Incrementing strictly by +1 for the next upcoming period display
     let incrementedValue = parseInt(targetFourDigits) + 1;
     if (incrementedValue > 9999) { incrementedValue = 0; }
     return incrementedValue.toString().padStart(4, '0');
 }
 
 // ==================================================================================
-// ADVANCED TREND ANALYSIS WITH BIG / SMALL TAG MAPPING
+// ADVANCED TREND MATRIX WITH BIG/SMALL BUSINESS RULES
 // ==================================================================================
 function executePatternAnalysis(upcomingPeriodStr) {
-    let targetOneNum = 7; // Solid structural fallback seeds
+    let targetOneNum = 7; 
     let targetTwoNum = 2;
     let targetThreeNum = 5;
 
@@ -159,20 +166,23 @@ function executePatternAnalysis(upcomingPeriodStr) {
         targetThreeNum = Math.abs(structuralFallbackSeed * 2 - 5) % 10;
     }
 
-    // STRICT BUSINESS RULE: Big (5-9) vs Small (0-4) mapping over the top high-probability number
-    let evaluationTrendTag = "SMALL";
+    // STRICT GAME RULE: Big (5 to 9) & Small (0 to 4) Mapping
+    let finalTrendTag = "SMALL";
     if (targetOneNum >= 5 && targetOneNum <= 9) {
-        evaluationTrendTag = "BIG";
+        finalTrendTag = "BIG";
     }
 
+    // Packing multiple redundant parameters to fit any front-end UI script perfectly
     globalPrediction = {
-        period: upcomingPeriodStr, // Strict API Period + 1 Engine
+        period: upcomingPeriodStr, 
         topNumbers: [
             { num: targetOneNum, chance: 99 }, 
             { num: targetTwoNum, chance: 89 }, 
             { num: targetThreeNum, chance: 50 } 
         ],
-        trendText: evaluationTrendTag, // Strictly passes "BIG" or "SMALL" dynamically
+        trend: finalTrendTag,        
+        trendText: finalTrendTag,    
+        output: finalTrendTag,       
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
 
@@ -180,7 +190,7 @@ function executePatternAnalysis(upcomingPeriodStr) {
 }
 
 // ==================================================================================
-// CRASH-PROOF NATIVE REGEX PARSER FOR NUMBERGENERATOR.ORG
+// CRASH-PROOF REGEX PARSER FOR NUMBERGENERATOR.ORG
 // ==================================================================================
 async function fetchNumberFromGenerator() {
     try {
@@ -205,14 +215,14 @@ async function fetchNumberFromGenerator() {
         if (!isNaN(parsedNum) && parsedNum >= 0 && parsedNum <= 9) {
             return parsedNum;
         }
-        throw new Error("Regex format mismatch");
+        throw new Error("HTML structure parse failed");
     } catch (err) {
         return Math.floor(Math.random() * 10);
     }
 }
 
 // ==================================================================================
-// HYBRID POLL PROCESS ENGINE
+// POLL ROUTINE DISTRIBUTOR ENGINE
 // ==================================================================================
 async function updatePrediction() {
     let axiosConfig = {
@@ -239,7 +249,7 @@ async function updatePrediction() {
             detectedPeriodStr = response.data.data.list[0].issueNumber.toString();
             currentProxyIndex = 0; 
         } else {
-            throw new Error("Invalid structure data parsing");
+            throw new Error("Data read exception");
         }
     } catch (networkError) {
         currentProxyIndex++;
@@ -261,16 +271,17 @@ async function updatePrediction() {
         if (strictHistoryLog.length > 50) {
             strictHistoryLog = strictHistoryLog.slice(0, 50);
         }
-        console.log(`[DATA METRIC] Period: ${detectedPeriodStr} | Outcome: ${liveScrapedRngResult}`);
+        console.log(`[SYSTEM LOG] Synchronized Period: ${detectedPeriodStr} | Scraped Output: ${liveScrapedRngResult}`);
         saveToPermanentDatabase();
     }
 
+    // Dynamic addition of +1 strictly mapping towards the upcoming round calculation
     let safeUpcomingPeriod = calculateUpcomingPeriod(detectedPeriodStr);
     executePatternAnalysis(safeUpcomingPeriod);
 }
 
-// 3.0 Seconds optimized tracking loops
-setInterval(updatePrediction, 3000);
+// Continuous polling interval loop
+setInterval(updatePrediction, 2500);
 updatePrediction();
 
 app.post('/api/admin/uid', (req, res) => {
@@ -308,4 +319,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 10000;
-server.listen(PORT, () => console.log(`[MATRIX LIVE V3 ONLINE] Running flawlessly on port ${PORT}`));
+server.listen(PORT, () => console.log(`[MATRIX SUPREME V4 ONLINE] Ready for clean deployment on port ${PORT}`));
