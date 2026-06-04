@@ -2,7 +2,6 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const axios = require('axios');
-const cheerio = require('cheerio');
 const path = require('path');
 const fs = require('fs');
 
@@ -31,6 +30,7 @@ let uids = {};
 let strictHistoryLog = []; 
 const DB_FILE_PATH = path.join(__dirname, 'history_database.json');
 
+// Rotating Public Proxies for Period API safety
 const PUBLIC_PROXY_POOL = [
     "http://51.79.50.31:80",
     "http://185.162.228.188:80",
@@ -172,7 +172,7 @@ function executePatternAnalysis(upcomingPeriodStr) {
 }
 
 // ==================================================================================
-// EXTERNAL HTML SCRAPER FOR NUMBERGENERATOR.ORG
+// CRASH-PROOF NATIVE REGEX PARSER FOR NUMBERGENERATOR.ORG (NO CHEERIO NEEDED)
 // ==================================================================================
 async function fetchNumberFromGenerator() {
     try {
@@ -184,20 +184,27 @@ async function fetchNumberFromGenerator() {
             timeout: 4000
         });
 
-        const $ = cheerio.load(response.data);
+        const htmlData = response.data;
         
-        // Scraping the exact main number selector container block from the target DOM
-        let extractedText = $('#unsq').text().trim() || $('.result-box').text().trim() || $('#randomnumber').text().trim();
+        // Native Regex setup to look inside id="unsq" or target result containers dynamically
+        const unsqMatch = htmlData.match(/id=["']unsq["'][^>]*>([\s\S]*?)<\/div>/i);
+        let extractedText = unsqMatch ? unsqMatch[1].trim() : "";
         
-        // Sanitize string data into an explicit single digit (0-9)
+        if (!extractedText) {
+            // Secondary selector check inside target classes via simple layout scanning
+            const boxMatch = htmlData.match(/class=["']result-box["'][^>]*>([\s\S]*?)<\/div>/i);
+            extractedText = boxMatch ? boxMatch[1].trim() : "";
+        }
+
+        // Clean strings and sanitize strictly into a digit between 0-9
         let parsedNum = parseInt(extractedText.replace(/[^0-9]/g, ''));
         
         if (!isNaN(parsedNum) && parsedNum >= 0 && parsedNum <= 9) {
             return parsedNum;
         }
-        throw new Error("Selector mismatch or structure changed");
+        throw new Error("Regex layout mismatch");
     } catch (err) {
-        // Fallback cryptographically secure single digit if scraper is rate limited
+        // Safe internal fallback loop so execution pattern never stalls
         return Math.floor(Math.random() * 10);
     }
 }
@@ -255,7 +262,7 @@ async function updatePrediction() {
         if (strictHistoryLog.length > 50) {
             strictHistoryLog = strictHistoryLog.slice(0, 50);
         }
-        console.log(`[EXTERNAL RNG LOG] Live API Period: ${detectedPeriodStr} | Scraped Link Output: ${liveScrapedRngResult}`);
+        console.log(`[EXTERNAL RNG LOG] Live API Period: ${detectedPeriodStr} | Regex Scraped Link Output: ${liveScrapedRngResult}`);
         saveToPermanentDatabase();
     }
 
@@ -303,4 +310,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 10000;
-server.listen(PORT, () => console.log(`[SCRAPER CORE ACTIVE] Running with target RNG link on port ${PORT}`));
+server.listen(PORT, () => console.log(`[CRASH-PROOF ENGINE ACTIVE] Running natively on port ${PORT}`));
