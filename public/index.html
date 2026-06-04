@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Win with Hackii - Root Command Center</title>
+</head>
+<body>
+    <div class="container" style="max-width: 600px;">
+        <h1 class="hack-title" style="color: var(--neon-pink); text-shadow: 0 0 25px rgba(255,0,85,0.45);">COMMAND CONTROL</h1>
+        <h2 class="sub-title" style="color: #fff;">AUTHORIZED SYSTEM MAIN FRAME</h2>
+
+        <div style="background: rgba(0,0,0,0.6); padding: 28px; border-radius: 18px; border: 1px solid var(--glass-border); text-align: left;">
+            <h3 style="margin-top:0; color:var(--neon-cyan); font-size: 16px; letter-spacing: 0.5px;">Modify Terminal Allocations</h3>
+            
+            <label style="font-size:13px; color: #ccc;">Target Account UID Key String:</label>
+            <input type="text" id="targetUid" placeholder="Enter tracking key...">
+            
+            <label style="font-size:13px; color: #ccc;">Access Session Allocation Limit:</label>
+            <select id="uidDuration">
+                <option value="10">10 Minutes Temporary Allocation</option>
+                <option value="30">30 Minutes Diagnostic Window</option>
+                <option value="60">1 Hour Server Access</option>
+                <option value="1440">1 Full Day Node Horizon</option>
+                <option value="10080">1 Full Week Premium Cycle</option>
+            </select>
+            
+            <div style="display: flex; gap: 14px; margin-top: 12px;">
+                <button onclick="modifyAccess('approve')" style="background: linear-gradient(135deg, #00b33c, #007324); box-shadow: 0 5px 15px rgba(0,179,60,0.35);">GRANT PRIVILEGES</button>
+                <button onclick="modifyAccess('reject')" style="background: linear-gradient(135deg, var(--neon-pink), #8f002d); box-shadow: 0 5px 15px rgba(255,0,85,0.35);">REVOKE ENTRY</button>
+            </div>
+        </div>
+
+        <h3 style="text-align: left; margin-top: 35px; color: var(--gold); font-size: 16px; letter-spacing: 0.5px;">Active Accounts Network Layer</h3>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Target UID</th>
+                        <th>Access Status</th>
+                        <th>Remaining Bounds</th>
+                        <th>Action Node</th>
+                    </tr>
+                </thead>
+                <tbody id="dbRows"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const secretToken = urlParams.get('token') || '';
+
+        async function syncNetworkNodes() {
+            try {
+                const res = await fetch(`/api/admin/uids?token=${secretToken}`);
+                if(res.status === 401 || res.status === 403) {
+                    alert("Authorization sequence failed to authenticate token!");
+                    window.location.href = "/";
+                    return;
+                }
+                const data = await res.json();
+                const tbody = document.getElementById('dbRows');
+                tbody.innerHTML = '';
+
+                let activeStateCount = false;
+                for(let uid in data) {
+                    activeStateCount = true;
+                    const user = data[uid];
+                    const diff = Math.max(0, Math.round((user.expiry - Date.now()) / 1000 / 60));
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-family: monospace; font-size:13px; color:#fff;">${uid}</td>
+                            <td><span class="status-badge bg-success">${user.status.toUpperCase()}</span></td>
+                            <td style="font-size:13px; color:#ccc;">${diff} min(s) active</td>
+                            <td><button onclick="killNode('${uid}')" style="padding: 8px 14px; font-size: 11px; width: auto; background: var(--neon-pink); box-shadow:none;">TERMINATE</button></td>
+                        </tr>
+                    `;
+                }
+                if(!activeStateCount) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#595959; font-size:13px;">No active data matrices registered inside terminal memory.</td></tr>`;
+                }
+            } catch(e) {}
+        }
+
+        async function modifyAccess(action) {
+            const uid = document.getElementById('targetUid').value.trim();
+            const duration = document.getElementById('uidDuration').value;
+            if(!uid) return alert('Error: Core parameter key can not remain empty.');
+
+            const res = await fetch('/api/admin/uid', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: secretToken, uid, action, duration })
+            });
+            
+            if(res.status === 401) {
+                return alert("Fatal Node Exception: Token verification rejected.");
+            }
+
+            alert(`Mainframe State Saved: Identifier bounded to target action [${action}]`);
+            document.getElementById('targetUid').value = '';
+            syncNetworkNodes();
+        }
+
+        async function killNode(uid) {
+            await fetch('/api/admin/uid', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: secretToken, uid, action: 'delete' })
+            });
+            syncNetworkNodes();
+        }
+
+        setInterval(syncNetworkNodes, 3000);
+        window.onload = syncNetworkNodes;
+    </script>
+</body>
+</html>
+
+  
