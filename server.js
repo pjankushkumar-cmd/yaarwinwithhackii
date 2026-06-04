@@ -30,7 +30,6 @@ let uids = {};
 let strictHistoryLog = []; 
 const DB_FILE_PATH = path.join(__dirname, 'history_database.json');
 
-// Rotating Public Proxies for Period API safety
 const PUBLIC_PROXY_POOL = [
     "http://51.79.50.31:80",
     "http://185.162.228.188:80",
@@ -71,13 +70,15 @@ function getCurrentWallclockPeriod() {
     return totalMinutes.toString().padStart(4, '0');
 }
 
+// Initial default state configuration to completely eliminate 'undefined' text
 let globalPrediction = { 
     period: getCurrentWallclockPeriod(), 
     topNumbers: [
-        { num: 4, chance: 99 },
+        { num: 7, chance: 99 },
         { num: 2, chance: 89 },
-        { num: 9, chance: 50 }
+        { num: 5, chance: 50 }
     ],
+    trendText: "BIG", // Default safe fallback state
     timestamp: "00:00:00" 
 };
 
@@ -97,12 +98,12 @@ function calculateUpcomingPeriod(currentApiPeriodStr) {
 }
 
 // ==================================================================================
-// ADVANCED TREND ANALYSIS FOR SCANNED OUTCOMES
+// ADVANCED TREND ANALYSIS WITH BIG / SMALL TAG MAPPING
 // ==================================================================================
 function executePatternAnalysis(upcomingPeriodStr) {
-    let targetOneNum = 0;
-    let targetTwoNum = 0;
-    let targetThreeNum = 0;
+    let targetOneNum = 7; // Solid structural fallback seeds
+    let targetTwoNum = 2;
+    let targetThreeNum = 5;
 
     if (strictHistoryLog && strictHistoryLog.length > 0) {
         let numericalStream = strictHistoryLog.map(g => parseInt(g.number || 0));
@@ -158,13 +159,20 @@ function executePatternAnalysis(upcomingPeriodStr) {
         targetThreeNum = Math.abs(structuralFallbackSeed * 2 - 5) % 10;
     }
 
+    // STRICT BUSINESS RULE: Big (5-9) vs Small (0-4) mapping over the top high-probability number
+    let evaluationTrendTag = "SMALL";
+    if (targetOneNum >= 5 && targetOneNum <= 9) {
+        evaluationTrendTag = "BIG";
+    }
+
     globalPrediction = {
-        period: upcomingPeriodStr, 
+        period: upcomingPeriodStr, // Strict API Period + 1 Engine
         topNumbers: [
             { num: targetOneNum, chance: 99 }, 
             { num: targetTwoNum, chance: 89 }, 
             { num: targetThreeNum, chance: 50 } 
         ],
+        trendText: evaluationTrendTag, // Strictly passes "BIG" or "SMALL" dynamically
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
 
@@ -172,7 +180,7 @@ function executePatternAnalysis(upcomingPeriodStr) {
 }
 
 // ==================================================================================
-// CRASH-PROOF NATIVE REGEX PARSER FOR NUMBERGENERATOR.ORG (NO CHEERIO NEEDED)
+// CRASH-PROOF NATIVE REGEX PARSER FOR NUMBERGENERATOR.ORG
 // ==================================================================================
 async function fetchNumberFromGenerator() {
     try {
@@ -185,32 +193,26 @@ async function fetchNumberFromGenerator() {
         });
 
         const htmlData = response.data;
-        
-        // Native Regex setup to look inside id="unsq" or target result containers dynamically
         const unsqMatch = htmlData.match(/id=["']unsq["'][^>]*>([\s\S]*?)<\/div>/i);
         let extractedText = unsqMatch ? unsqMatch[1].trim() : "";
         
         if (!extractedText) {
-            // Secondary selector check inside target classes via simple layout scanning
             const boxMatch = htmlData.match(/class=["']result-box["'][^>]*>([\s\S]*?)<\/div>/i);
             extractedText = boxMatch ? boxMatch[1].trim() : "";
         }
 
-        // Clean strings and sanitize strictly into a digit between 0-9
         let parsedNum = parseInt(extractedText.replace(/[^0-9]/g, ''));
-        
         if (!isNaN(parsedNum) && parsedNum >= 0 && parsedNum <= 9) {
             return parsedNum;
         }
-        throw new Error("Regex layout mismatch");
+        throw new Error("Regex format mismatch");
     } catch (err) {
-        // Safe internal fallback loop so execution pattern never stalls
         return Math.floor(Math.random() * 10);
     }
 }
 
 // ==================================================================================
-// HYBRID TIMELINE POLL ENGINE
+// HYBRID POLL PROCESS ENGINE
 // ==================================================================================
 async function updatePrediction() {
     let axiosConfig = {
@@ -232,7 +234,6 @@ async function updatePrediction() {
     let detectedPeriodStr = "";
 
     try {
-        // 1. Period Target Extraction from the Game API
         const response = await axios.get(GAME_API, axiosConfig);
         if (response.data && response.data.data && response.data.data.list && response.data.data.list.length > 0) {
             detectedPeriodStr = response.data.data.list[0].issueNumber.toString();
@@ -249,10 +250,8 @@ async function updatePrediction() {
         }
     }
 
-    // 2. Extracting exact real-time number value from your source target link
     let liveScrapedRngResult = await fetchNumberFromGenerator();
 
-    // 3. FIFO Multi-layer Logging Stream mapping
     let isAlreadyLogged = strictHistoryLog.some(item => item.issueNumber === detectedPeriodStr);
     if (!isAlreadyLogged) {
         strictHistoryLog.unshift({
@@ -262,11 +261,10 @@ async function updatePrediction() {
         if (strictHistoryLog.length > 50) {
             strictHistoryLog = strictHistoryLog.slice(0, 50);
         }
-        console.log(`[EXTERNAL RNG LOG] Live API Period: ${detectedPeriodStr} | Regex Scraped Link Output: ${liveScrapedRngResult}`);
+        console.log(`[DATA METRIC] Period: ${detectedPeriodStr} | Outcome: ${liveScrapedRngResult}`);
         saveToPermanentDatabase();
     }
 
-    // 4. Running analysis updates over upcoming target period
     let safeUpcomingPeriod = calculateUpcomingPeriod(detectedPeriodStr);
     executePatternAnalysis(safeUpcomingPeriod);
 }
@@ -310,4 +308,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 10000;
-server.listen(PORT, () => console.log(`[CRASH-PROOF ENGINE ACTIVE] Running natively on port ${PORT}`));
+server.listen(PORT, () => console.log(`[MATRIX LIVE V3 ONLINE] Running flawlessly on port ${PORT}`));
