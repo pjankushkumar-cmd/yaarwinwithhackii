@@ -71,6 +71,7 @@ function getCurrentWallclockPeriod() {
     return totalMinutes.toString().padStart(4, '0');
 }
 
+// Global prediction schema with all possible legacy trend keys to avoid frontend undefined outputs
 let globalPrediction = { 
     period: getCurrentWallclockPeriod(), 
     topNumbers: [
@@ -78,36 +79,35 @@ let globalPrediction = {
         { num: 6, chance: 89 },
         { num: 8, chance: 50 }
     ],
+    trend: "BIG",
+    trendText: "BIG",
+    trend_text: "BIG",
+    output: "BIG",
+    data: "BIG",
     timestamp: "00:00:00" 
 };
 
 const GAME_API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json?pageNo=1&pageSize=50&gameId=1";
 
-// ==================================================================================
 // STRICT UPCOMING PERIOD CALCULATOR (+1 ENGINE)
-// ==================================================================================
 function calculateUpcomingPeriod(currentApiPeriodStr) {
     let targetFourDigits = "";
     if (currentApiPeriodStr && currentApiPeriodStr.length >= 4) {
-        // Last 4 digits ko extract karna target trend ke liye
         targetFourDigits = currentApiPeriodStr.slice(-4);
     } else {
         targetFourDigits = getCurrentWallclockPeriod();
     }
     
-    // Incrementing by +1 strictly for the upcoming period display
     let incrementedValue = parseInt(targetFourDigits) + 1;
     if (incrementedValue > 9999) { incrementedValue = 0; }
     return incrementedValue.toString().padStart(4, '0');
 }
 
-// ==================================================================================
-// ADVANCED TREND ENGINE FOR UPCOMING PREDICTIONS
-// ==================================================================================
+// ADVANCED TREND ENGINE FOR UPCOMING PREDICTIONS WITH STABLE ALGORITHMS
 function executePatternAnalysis(upcomingPeriodStr) {
-    let targetOneNum = 0;
-    let targetTwoNum = 0;
-    let targetThreeNum = 0;
+    let targetOneNum = 7;
+    let targetTwoNum = 2;
+    let targetThreeNum = 5;
 
     if (strictHistoryLog && strictHistoryLog.length > 0) {
         let numericalStream = strictHistoryLog.map(g => {
@@ -153,7 +153,7 @@ function executePatternAnalysis(upcomingPeriodStr) {
         
         weightCounter[(lastNum + primaryDeltaGap) % 10] += 50;
         weightCounter[Math.abs(lastNum - secondaryDeltaGap) % 10] += 40;
-        weightCounter[(parseInt(upcomingPeriodStr) + lastNum) % 10] += 30; // Direct Period binding index
+        weightCounter[(parseInt(upcomingPeriodStr) + lastNum) % 10] += 30;
 
         let clusterScores = weightCounter.map((w, idx) => ({ num: idx, weight: w }));
         clusterScores.sort((a, b) => b.weight - a.weight);
@@ -163,14 +163,19 @@ function executePatternAnalysis(upcomingPeriodStr) {
         targetThreeNum = clusterScores[2].num;
 
     } else {
-        // High level pure algebraic algorithm seeding backup if cache arrays aren't populated
         let structuralFallbackSeed = parseInt(upcomingPeriodStr) || 9;
         targetOneNum = (structuralFallbackSeed * 7 + 3) % 10;
         targetTwoNum = (structuralFallbackSeed * 3 + 1) % 10;
         targetThreeNum = Math.abs(structuralFallbackSeed * 2 - 5) % 10;
     }
 
-    // Assigning variables to the strict upcoming period structure
+    // STRICT RULES CHECKING BASED ON TARGET ONE NUMBER: BIG (5-9) vs SMALL (0-4)
+    let dynamicTrendTag = "SMALL";
+    if (targetOneNum >= 5 && targetOneNum <= 9) {
+        dynamicTrendTag = "BIG";
+    }
+
+    // Bundling trend flags under multiple variable versions so frontend file fetches successfully
     globalPrediction = {
         period: upcomingPeriodStr, 
         topNumbers: [
@@ -178,15 +183,18 @@ function executePatternAnalysis(upcomingPeriodStr) {
             { num: targetTwoNum, chance: 89 }, 
             { num: targetThreeNum, chance: 50 } 
         ],
+        trend: dynamicTrendTag,
+        trendText: dynamicTrendTag,
+        trend_text: dynamicTrendTag,
+        output: dynamicTrendTag,
+        data: dynamicTrendTag,
         timestamp: new Date().toLocaleTimeString('en-US', { hour12: false })
     };
 
     io.emit('predictionUpdate', globalPrediction);
 }
 
-// ==================================================================================
 // DATA FETCHING ENGINE (BYPASS + UPDATE)
-// ==================================================================================
 async function updatePrediction() {
     let axiosConfig = {
         headers: {
@@ -230,13 +238,9 @@ async function updatePrediction() {
                 saveToPermanentDatabase(); 
             }
 
-            // Current raw issue extracted from live stream
             let rawApiPeriodStr = strictHistoryLog[0].issueNumber.toString();
-            
-            // STRICT CORE LOGIC: Dynamic +1 addition to push calculation towards UPCOMING period
             let safeUpcomingPeriod = calculateUpcomingPeriod(rawApiPeriodStr);
             
-            // Running evaluation matrix on upcoming period code
             executePatternAnalysis(safeUpcomingPeriod);
             currentProxyIndex = 0; 
         } else {
@@ -255,7 +259,6 @@ async function updatePrediction() {
     }
 }
 
-// Set continuous interval loop
 setInterval(updatePrediction, 2500);
 updatePrediction();
 
@@ -281,10 +284,10 @@ app.post('/api/user/verify', (req, res) => {
     const { uid } = req.body;
     if (!uid) return res.json({ status: 'invalid', message: 'Credentials parameter can not be null.' });
     const match = uids[uid];
-    if (!match) return res.json({ status: 'pending', message: 'Access node verification: PENDING!' });
+    if (!match) return res.json({ status: 'pending', message: '🔴 ACCESS PENDING! Please contact Admin.' });
     if (Date.now() > match.expiry) {
         delete uids[uid];
-        return res.json({ status: 'expired', message: 'Active session window has closed!' });
+        return res.json({ status: 'expired', message: '🔴 SESSION EXPIRED! Please renew.' });
     }
     res.json({ status: 'approved' });
 });
